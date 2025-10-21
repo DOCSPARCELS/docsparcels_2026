@@ -1,0 +1,61 @@
+# .gitignore - Sistema Spedizioni 2026
+# Ignora ambiente virtuale locale
+.venv/
+
+# Ignora directory del bytecode Python
+__pycache__/
+*.py[cod]
+interface/__pycache__/
+
+# File di configurazione locali
+.env
+
+# Cartelle ed impostazioni degli editor
+.vscode/
+
+# File di sistema di Windows
+desktop.ini
+
+# Log e file temporanei
+server.log
+*.log
+tracking_background.log
+
+# File di test e debug
+test_*.py
+check_*.py
+debug_*.py
+analyze_*.py
+add_*.py
+clean_*.py
+verifica_*.py
+mass_*.py
+update_*.py
+quick_*.py
+find_*.py
+reload_*.py
+verify_*.py
+explore_*.py
+align_*.py
+create_*.py
+*.html.backup
+
+# File HTML di test
+test_browser.html
+debug.html
+
+# Cartelle di documentazione API pesanti
+manuale_API_BRT/
+manuale_API_FedEx/
+
+# Cartelle di deploy temporanee
+deploy_*/
+
+# Tools locali (script di utilità che non servono in produzione)
+tools/
+
+# File temporanei generati da file manager
+Thumbs.db
+
+# File di deploy locali
+deploy_package.zip

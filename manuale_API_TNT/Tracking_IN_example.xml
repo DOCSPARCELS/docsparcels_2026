@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<Application>MYTRA</Application>
+	<Version>3.0</Version>
+	<Login>
+		<Customer>D07938</Customer>
+		<User>XMLUSER</User>
+		<Password>Docsep2024</Password>
+		<LangID>IT</LangID>
+	</Login>
+	<SearchCriteria>
+		<ConNo>WS82879660</ConNo>
+		<AccountNo>07054468</AccountNo>
+		<ReceiverPay>N</ReceiverPay>
+		<PODSearch>Y</PODSearch>
+	</SearchCriteria>
+	<SearchParameters>
+		<SearchType>Detail</SearchType>
+		<SearchOption>ConsignmentTracking</SearchOption>
+		<SearchMethod>Forward</SearchMethod>
+	</SearchParameters>
+	<ExtraDetails>OriginDepot,HeldInDepot,ConsignmentDetail</ExtraDetails>
+</Document>

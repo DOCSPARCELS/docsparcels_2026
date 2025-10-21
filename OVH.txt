@@ -1,0 +1,10 @@
+Sei connesso come:
+ps1264106-ovh - Luca Aveani (DEP di Luca Aveani)
+Root user
+
+Accesso SSH
+Password: qrUTxMkM7Dke
+
+Root: qrUTxMkM7Dke
+
+Psw: qrUTxMkM7Dke_STRONG_PASSWORD

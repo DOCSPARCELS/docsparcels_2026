@@ -1,0 +1,62 @@
+﻿<ResultSet>
+	<ApplicationFunction>priceCheck</ApplicationFunction>
+	<Complete>
+		<Address>
+			<ShortName/>
+			<AddressLine1>VIA SPINELLI</AddressLine1>
+			<Town>PESCHIERA BORROMEO</Town>
+			<Postcode>20068</Postcode>
+			<CountryID>IT</CountryID>
+			<ContactName/>
+			<CompanyName>TNT ESPRESS ITALY</CompanyName>
+			<Province>MI</Province>
+		</Address>
+		<ShipmentKey>2013-11-19-13.53.13.237111</ShipmentKey>
+		<Service cod="A" id="express">Express</Service>
+		<PromoID/>
+		<PromoDesc/>
+		<CMessage/>
+		<AccountNo>06734762</AccountNo>
+		<Booking>N</Booking>
+		<Date>19.11.2013</Date>
+		<Details>
+			<Package>
+				<Items>
+					<ItemSeqNo>0</ItemSeqNo>
+					<Type>0</Type>
+					<INumber>1</INumber>
+					<IWeight>10</IWeight>
+					<IDescription/>
+					<Length>30</Length>
+					<Height>30</Height>
+					<Width>40</Width>
+					<Volume>0,040</Volume>
+				</Items>
+			</Package>
+		</Details>
+		<Pricing>
+			<Price>99,99</Price>
+		</Pricing>
+		<ServicesList>
+			<Service>
+				<Code>D</Code>
+				<Description>10:00 Express</Description>
+				<Price>99,99</Price>
+				<Timing>entro ore 10.00 giorno successivo</Timing>
+			</Service>
+			<Service>
+				<Code>T</Code>
+				<Description>12:00 Express</Description>
+				<Price>99,99</Price>
+				<Timing>entro ore 12.00 giorno successivo</Timing>
+			</Service>
+			<Service>
+				<Code>A</Code>
+				<Description>Express</Description>
+				<Price>99,99</Price>
+				<Timing>giorni lavorativi : 1</Timing>
+			</Service>
+		</ServicesList>
+	</Complete>
+	<TransactionTimeId>2013-11-19-13.53.13.209356</TransactionTimeId>
+</ResultSet>
