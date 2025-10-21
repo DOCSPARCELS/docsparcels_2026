@@ -3,7 +3,9 @@ ps1264106-ovh - Luca Aveani (DEP di Luca Aveani)
 Root user
 
 Accesso SSH
+ssh root@91.134.91.229
 Password: qrUTxMkM7Dke
+Nuova Password: dG97R7wtk6nQ
 
 Root: qrUTxMkM7Dke
 
