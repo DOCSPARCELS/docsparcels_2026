@@ -123,7 +123,43 @@ def serve_home():
     sort_dir = request.args.get("sort_dir", "asc").lower()
     if sort_dir not in ("asc", "desc"): sort_dir = "asc"
 
-    # Filtro per spedizioni in transito - ATTIVO DI DEFAULT (mostra solo final_position = 0)
+    # NUOVO: Avvia aggiornamento tracking TUTTI i record con final_position = 0
+    import threading
+    def update_tracking_async():
+        try:
+            from tracking_service import TrackingService
+            tracking_service = TrackingService()
+            
+            with db_cursor() as (conn, cur):
+                # Prendi TUTTE le spedizioni in transito (final_position = 0)
+                query = """
+                SELECT id FROM spedizioni 
+                WHERE final_position = 0 
+                AND awb IS NOT NULL 
+                AND vettore IS NOT NULL
+                ORDER BY data_spedizione DESC
+                """
+                cur.execute(query)
+                spedizioni = cur.fetchall()
+                
+                LOG.info(f"🔄 Aggiornamento tracking per {len(spedizioni)} spedizioni in transito")
+                
+                for spedizione in spedizioni:
+                    try:
+                        tracking_service.update_tracking(spedizione[0])
+                    except Exception as e:
+                        LOG.warning(f"Errore tracking spedizione {spedizione[0]}: {e}")
+                        
+                LOG.info(f"✅ Aggiornamento tracking completato")
+                    
+        except Exception as e:
+            LOG.error(f"❌ Errore aggiornamento tracking automatico: {e}")
+    
+    # Avvia thread in background (non blocca il caricamento pagina)
+    thread = threading.Thread(target=update_tracking_async, daemon=True)
+    thread.start()
+
+    # Filtro per spedizioni in transito - ATTIVO DI DEFAULT
     only_transit = request.args.get("only_transit", "1") == "1"
     where_sql = " WHERE final_position = 0" if only_transit else ""
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Tracking Service - Aggiornamento automatico last_position
+Tracking Service - Aggiornamento automatico last_position e final_position
 
-Integra UPS, DHL e SDA tracking con la tabella spedizioni.
+Integra UPS, DHL, SDA, BRT, FedEx e TNT tracking con la tabella spedizioni.
 NON salva messaggi di errore in last_position - solo status validi.
 Applica mappature personalizzate dalla tabella codici_tracking.
+Aggiorna automaticamente final_position quando la spedizione è consegnata.
 """
 
 import logging
@@ -37,7 +38,7 @@ class TrackingService:
     def __init__(self):
         self.ups_client = UPSTrackingClient()
         self.dhl_client = DHLTrackingClient()
-        self.sda_client = SDATrackingInterface(environment='prod')  # Usa credenziali produzione
+        self.sda_client = SDATrackingInterface(environment='prod')
         self.brt_client = BRTTrackingInterface()
         self.fedex_client = FedExTracking()
         self.tnt_client = TNTTrackingClient()
@@ -94,7 +95,7 @@ class TrackingService:
                 if updated:
                     return {
                         "success": True, 
-                        "last_position": mapped_position,  # Restituisce il valore mappato
+                        "last_position": mapped_position,
                         "vettore": vettore,
                         "awb": awb
                     }
@@ -128,7 +129,7 @@ class TrackingService:
         Ottiene i dati completi di tracking dal vettore appropriato
         
         Args:
-            vettore: UPS, DHL o SDA
+            vettore: UPS, DHL, SDA, BRT, FedEx o TNT
             awb: Numero tracking
             
         Returns:
@@ -137,14 +138,9 @@ class TrackingService:
         try:
             if vettore == "UPS":
                 result = self.ups_client.track_shipment(awb)
-                # Se c'è un errore, ritorna solo l'errore
                 if result.get('error'):
                     LOG.warning(f"Errore tracking UPS {awb}: {result['error']}")
-                    return {
-                        'status': None,
-                        'events': [],
-                        'error': result['error']
-                    }
+                    return {'status': None, 'events': [], 'error': result['error']}
                 status = self._extract_ups_status(result)
                 return {
                     'success': True,
@@ -155,14 +151,9 @@ class TrackingService:
             
             elif vettore == "DHL":
                 result = self.dhl_client.track_shipment(awb)
-                # Se c'è un errore, ritorna solo l'errore
                 if result.get('error'):
                     LOG.warning(f"Errore tracking DHL {awb}: {result['error']}")
-                    return {
-                        'status': None,
-                        'events': [],
-                        'error': result['error']
-                    }
+                    return {'status': None, 'events': [], 'error': result['error']}
                 status = self._extract_dhl_status(result)
                 return {
                     'success': True,
@@ -173,14 +164,9 @@ class TrackingService:
             
             elif vettore == "SDA":
                 result = self.sda_client.track(awb)
-                # Se c'è un errore, ritorna solo l'errore
                 if not result.get('success'):
                     LOG.warning(f"Errore tracking SDA {awb}: {result.get('message', 'Errore sconosciuto')}")
-                    return {
-                        'status': None,
-                        'events': [],
-                        'error': result.get('message', 'Errore tracking SDA')
-                    }
+                    return {'status': None, 'events': [], 'error': result.get('message', 'Errore tracking SDA')}
                 status = self._extract_sda_status(result)
                 return {
                     'success': True,
@@ -191,14 +177,9 @@ class TrackingService:
             
             elif vettore == "BRT":
                 result = self.brt_client.track(awb)
-                # Se c'è un errore, ritorna solo l'errore
                 if not result.get('success'):
                     LOG.warning(f"Errore tracking BRT {awb}: {result.get('message', 'Errore sconosciuto')}")
-                    return {
-                        'status': None,
-                        'events': [],
-                        'error': result.get('message', 'Errore tracking BRT')
-                    }
+                    return {'status': None, 'events': [], 'error': result.get('message', 'Errore tracking BRT')}
                 status = self._extract_brt_status(result)
                 return {
                     'success': True,
@@ -207,17 +188,12 @@ class TrackingService:
                     'raw_result': result
                 }
             
-            elif vettore in ["FEDEX", "FED"]:  # Supporta sia FEDEX che FED
+            elif vettore in ["FEDEX", "FED"]:
                 result = self.fedex_client.track_shipment(awb)
-                # Se c'è un errore, ritorna l'errore
                 if not result.get('success'):
                     error_msg = result.get('error', 'Errore FedEx sconosciuto')
                     LOG.warning(f"Errore tracking FedEx {awb}: {error_msg}")
-                    return {
-                        'status': None,
-                        'events': [],
-                        'error': error_msg
-                    }
+                    return {'status': None, 'events': [], 'error': error_msg}
                 
                 events = result.get('events', [])
                 status = self._extract_fedex_status(events)
@@ -230,15 +206,10 @@ class TrackingService:
             
             elif vettore == "TNT":
                 result = self.tnt_client.track_shipment(awb)
-                # Se c'è un errore, ritorna l'errore
                 if result.get('status') != 'success':
                     error_msg = result.get('message', 'Errore TNT sconosciuto')
                     LOG.warning(f"Errore tracking TNT {awb}: {error_msg}")
-                    return {
-                        'status': None,
-                        'events': [],
-                        'error': error_msg
-                    }
+                    return {'status': None, 'events': [], 'error': error_msg}
                 
                 events = result.get('events', [])
                 status = self._extract_tnt_status(result)
@@ -269,25 +240,19 @@ class TrackingService:
     def _extract_ups_status(self, ups_result: Dict[str, Any]) -> str:
         """Estrae l'event_code da risultato UPS per permettere mappatura"""
         try:
-            # NON restituire errori
             if ups_result.get('error'):
                 return None
             
-            # Estrai ultimo evento dalla risposta UPS
             events = ups_result.get('events', [])
             if events:
-                # Prendi il primo evento (il più recente)
                 latest_event = events[0]
-                # MODIFICA: Usa event_code invece di description per mappatura
                 event_code = latest_event.get('event_code', '')
                 if event_code:
                     return event_code
-                # Fallback alla descrizione se non c'è event_code
                 status = latest_event.get('description', latest_event.get('status_type', ''))
                 if status:
                     return status
             
-            # Fallback al status_description generale se non ci sono eventi
             status = ups_result.get('status_description', ups_result.get('status', ''))
             return status if status else None
             
@@ -296,22 +261,18 @@ class TrackingService:
             return None
     
     def _extract_dhl_status(self, dhl_result: Dict[str, Any]) -> str:
-        """Estrae il messaggio di status da risultato DHL (solo se valido)"""
+        """Estrae il messaggio di status da risultato DHL"""
         try:
-            # NON restituire errori
             if dhl_result.get('error'):
                 return None
             
-            # Estrai ultimo evento dalla risposta DHL
             events = dhl_result.get('events', [])
             if events:
-                # Prendi l'ultimo evento (il più recente)
-                latest_event = events[-1]  # DHL potrebbe ordinare diversamente
+                latest_event = events[-1]
                 status = latest_event.get('description', '')
                 if status:
                     return status
             
-            # Fallback al status_description generale se non ci sono eventi
             status = dhl_result.get('status_description', dhl_result.get('status', ''))
             return status if status else None
             
@@ -320,13 +281,11 @@ class TrackingService:
             return None
     
     def _extract_sda_status(self, sda_result: Dict[str, Any]) -> str:
-        """Estrae il messaggio di status da risultato SDA (solo se valido)"""
+        """Estrae il messaggio di status da risultato SDA"""
         try:
-            # NON restituire errori
             if not sda_result.get('success'):
                 return None
             
-            # SDA restituisce già la last_position formattata
             status = sda_result.get('last_position', '')
             return status if status and not status.startswith('Errore') else None
             
@@ -335,13 +294,11 @@ class TrackingService:
             return None
     
     def _extract_brt_status(self, brt_result: Dict[str, Any]) -> str:
-        """Estrae il messaggio di status da risultato BRT (solo se valido)"""
+        """Estrae il messaggio di status da risultato BRT"""
         try:
-            # NON restituire errori
             if not brt_result.get('success'):
                 return None
             
-            # BRT restituisce già la last_position formattata
             status = brt_result.get('last_position', '')
             return status if status and not status.startswith('Errore') else None
             
@@ -350,21 +307,17 @@ class TrackingService:
             return None
     
     def _extract_fedex_status(self, fedex_events: list) -> str:
-        """Estrae il codice evento FedEx per permettere la mappatura personalizzata"""
+        """Estrae il codice evento FedEx per mappatura personalizzata"""
         try:
             if not fedex_events or len(fedex_events) == 0:
                 return None
             
-            # Prendi l'evento più recente (primo nella lista se ordinata)
             latest_event = fedex_events[0]
-            
-            # Restituisci solo il codice per permettere la mappatura
             codice = latest_event.get('codice', '')
             if codice:
                 LOG.info(f"🔍 FedEx status code estratto: '{codice}'")
                 return codice
             
-            # Fallback alla descrizione se non c'è codice
             descrizione = latest_event.get('descrizione', '')
             if descrizione:
                 LOG.info(f"🔍 FedEx fallback descrizione: '{descrizione}'")
@@ -377,18 +330,16 @@ class TrackingService:
             return None
     
     def _extract_tnt_status(self, tnt_result: Dict[str, Any]) -> str:
-        """Estrae il codice/status TNT per permettere la mappatura personalizzata"""
+        """Estrae il codice/status TNT per mappatura personalizzata"""
         try:
-            # TNT restituisce current_status direttamente
             current_status = tnt_result.get('current_status', '')
             if current_status:
                 LOG.info(f"🔍 TNT status estratto: '{current_status}'")
                 return current_status
             
-            # Fallback agli eventi se non c'è current_status
             events = tnt_result.get('events', [])
             if events and len(events) > 0:
-                latest_event = events[0]  # Primo evento (più recente)
+                latest_event = events[0]
                 description = latest_event.get('description', '')
                 if description:
                     LOG.info(f"🔍 TNT fallback descrizione: '{description}'")
@@ -401,39 +352,37 @@ class TrackingService:
             return None
     
     def _update_tracking_data(self, spedizione_id: int, last_position: str, events: list) -> bool:
-        """Aggiorna last_position nel database applicando mappature personalizzate"""
+        """Aggiorna last_position e final_position nel database applicando mappature personalizzate"""
         try:
-            # Prima ottieni il vettore per questa spedizione
             vettore = self._get_vettore_for_spedizione(spedizione_id)
             
             if vettore and last_position:
-                # Applica la mappatura personalizzata
                 event_info = get_event_info_for_tracking(vettore, last_position)
-                mapped_position = event_info['nome']  # Usa il nome personalizzato
-                
+                mapped_position = event_info['nome']
                 LOG.info(f"🔄 Mappatura {vettore} '{last_position}' -> '{mapped_position}'")
             else:
-                # Fallback se non abbiamo vettore o last_position
                 mapped_position = last_position
             
+            # NUOVO: Determina final_position basandosi sullo status
+            final_position = self._determine_final_position(mapped_position, vettore)
+            
             with db_cursor() as (conn, cur):
-                # Controlla se il valore è già quello corretto
-                cur.execute("SELECT last_position FROM spedizioni WHERE id = %s", [spedizione_id])
+                cur.execute("SELECT last_position, final_position FROM spedizioni WHERE id = %s", [spedizione_id])
                 current_value = cur.fetchone()
                 
-                if current_value and current_value[0] == mapped_position:
-                    LOG.info(f"✅ Tracking spedizione {spedizione_id} già aggiornato: '{mapped_position}'")
-                    return True  # Considera un successo se è già corretto
+                if current_value and current_value[0] == mapped_position and current_value[1] == final_position:
+                    LOG.info(f"✅ Tracking spedizione {spedizione_id} già aggiornato: '{mapped_position}' (final={final_position})")
+                    return True
                 
-                # Aggiorna solo se diverso
+                # MODIFICA: Aggiorna sia last_position che final_position
                 cur.execute(
-                    "UPDATE spedizioni SET last_position = %s WHERE id = %s",
-                    [mapped_position, spedizione_id]
+                    "UPDATE spedizioni SET last_position = %s, final_position = %s WHERE id = %s",
+                    [mapped_position, final_position, spedizione_id]
                 )
                 conn.commit()
                 
                 if cur.rowcount > 0:
-                    LOG.info(f"✅ Aggiornato tracking spedizione {spedizione_id}: '{mapped_position}'")
+                    LOG.info(f"✅ Aggiornato tracking spedizione {spedizione_id}: '{mapped_position}' (final={final_position})")
                     return True
                 else:
                     LOG.warning(f"⚠️ Nessuna riga aggiornata per spedizione {spedizione_id}")
@@ -442,6 +391,38 @@ class TrackingService:
         except Exception as e:
             LOG.exception("Errore aggiornamento tracking per spedizione %s", spedizione_id)
             return False
+    
+    def _determine_final_position(self, status: str, vettore: str) -> int:
+        """
+        Determina final_position basandosi sullo status
+        
+        Args:
+            status: Status della spedizione
+            vettore: Nome del vettore
+            
+        Returns:
+            0 = in transito
+            1 = consegnato
+        """
+        if not status:
+            return 0
+        
+        # Keywords che indicano consegna completata (multilingua)
+        delivered_keywords = [
+            'consegnat', 'delivered', 'delivery', 'livré', 'entregue',
+            'ricevut', 'received', 'reçu', 'recibido', 'consegna',
+            'firmato', 'signed', 'signé', 'complete', 'completato'
+        ]
+        
+        status_lower = status.lower()
+        
+        for keyword in delivered_keywords:
+            if keyword in status_lower:
+                LOG.info(f"🎯 Spedizione CONSEGNATA - keyword '{keyword}' trovata in '{status}'")
+                return 1
+        
+        LOG.info(f"📦 Spedizione IN TRANSITO - status: '{status}'")
+        return 0
     
     def _get_vettore_for_spedizione(self, spedizione_id: int) -> Optional[str]:
         """Ottiene il vettore per una spedizione specifica"""
