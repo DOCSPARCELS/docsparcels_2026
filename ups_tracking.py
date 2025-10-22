@@ -25,7 +25,7 @@ class UPSTrackingClient:
             config: Configurazione UPS (se None, carica da variabili d'ambiente)
         """
         self.config = config or UPSConfig.from_env()
-        self.config.debug = False
+        self.config.debug = True  # MODIFICATO: Attiva debug
         
         # Rate limiting ottimizzato per produzione
         self.min_delay_between_requests = 5.0  # 5 secondi tra richieste
@@ -257,7 +257,7 @@ class UPSTrackingClient:
         }
         
         try:
-            # Debug output
+            # Debug output richiesta
             if self.config.debug:
                 print(f"\nDEBUG - URL: {url}")
                 print(f"DEBUG - RICHIESTA XML UPS:")
@@ -276,11 +276,17 @@ class UPSTrackingClient:
             # Solleva eccezione per status code 4xx/5xx
             response.raise_for_status()
             
-            # Debug output
+            # Debug output risposta - FORMATTATO
             if self.config.debug:
                 print(f"DEBUG - RISPOSTA XML UPS:")
                 print("=" * 50)
-                print(response.text)
+                try:
+                    import xml.dom.minidom
+                    dom = xml.dom.minidom.parseString(response.text)
+                    print(dom.toprettyxml())
+                except:
+                    # Fallback se il parsing fallisce
+                    print(response.text)
                 print("=" * 50)
             
             return response.text
@@ -484,26 +490,16 @@ class UPSTrackingClient:
         }
 
 
-def test_ups_tracking():
-    """Funzione di test per UPS tracking"""
+if __name__ == "__main__":
     import sys
-    
-    print("\n" + "="*60)
-    print("UPS TRACKING CLIENT - PRODUZIONE")
-    print("="*60)
-    
-    client = UPSTrackingClient()
-    
-    print(f"Ambiente: {'TESTING' if client.config.use_testing else 'PRODUZIONE'}")
-    print(f"URL: {client.config.effective_url}")
-    print(f"Delay tra richieste: {client.min_delay_between_requests}s")
-    print(f"Max retry: {client.max_retries}")
-    print("="*60 + "\n")
+    from tracking_service import TrackingService
+    from db_connector import cursor as db_cursor
     
     if len(sys.argv) > 1:
-        # Test singolo tracking
-        tracking_number = sys.argv[1]
-        result = client.track_shipment(tracking_number, verbose=True)
+        # Test singolo tracking con AWB passato come parametro
+        awb = sys.argv[1]
+        client = UPSTrackingClient()
+        result = client.track_shipment(awb, verbose=True)
         
         print("\n" + "="*60)
         print("RISULTATO")
@@ -512,36 +508,134 @@ def test_ups_tracking():
         if 'error' in result:
             print(f"❌ Errore: {result['error']}")
         else:
-            print(f"Tracking Number: {result['tracking_number']}")
-            print(f"Status: {result['status_description']}")
-            print(f"Servizio: {result.get('service_type', 'N/A')}")
-            print(f"Origine: {result.get('origin', {}).get('description', 'N/A')}")
-            print(f"Destinazione: {result.get('destination', {}).get('description', 'N/A')}")
+            print(f"✓ Tracking completato")
             
-            if result.get('weight'):
-                print(f"Peso: {result['weight']}")
-            
-            if result.get('events'):
-                print(f"\nStorico eventi ({len(result['events'])}):")
-                print("-" * 60)
-                for i, event in enumerate(result['events'], 1):
-                    date_time = f"{event.get('date', 'N/A')} {event.get('time', 'N/A')}"
-                    desc = event.get('description', 'N/A')
-                    loc = event.get('location', 'N/A')
-                    print(f"{i}. {date_time}")
-                    print(f"   {desc}")
-                    print(f"   📍 {loc}")
-                    if i < len(result['events']):
-                        print()
-        
-        print("="*60)
-        
+        # Cerca nel database e aggiorna
+        print("\nAggiornamento database...")
+        with db_cursor() as (conn, cur):
+            cur.execute("SELECT id FROM spedizioni WHERE awb = %s AND vettore = 'UPS'", [awb])
+            row = cur.fetchone()
+            if row:
+                spedizione_id = row[0]
+                service = TrackingService()
+                update_result = service.update_tracking_ups(spedizione_id)
+                if update_result.get("success"):
+                    print(f"✓ Database aggiornato per spedizione ID {spedizione_id}")
+                else:
+                    print(f"⚠ Errore aggiornamento DB: {update_result.get('error')}")
+            else:
+                print(f"⚠ Nessuna spedizione UPS trovata con AWB {awb}")
+                
     else:
-        print("Utilizzo: python ups_tracking.py <TRACKING_NUMBER>")
-        print("Esempio: python ups_tracking.py 1Z12345E0193080450")
-        print("\nPer tracciare multipli tracking numbers, usa:")
-        print("  python -c \"from ups_tracking import UPSTrackingClient; client = UPSTrackingClient(); client.track_multiple_shipments(['1Z...', '1Z...'])\"")
+        # Processa TUTTE le spedizioni UPS in transito (final_position = 0)
+        print("\n" + "="*60)
+        print("TRACKING AUTOMATICO SPEDIZIONI UPS IN TRANSITO")
+        print("="*60 + "\n")
+        
+        from tracking_service import TrackingService
+        service = TrackingService()
+        
+        with db_cursor() as (conn, cur):
+            cur.execute("""
+                SELECT id, awb 
+                FROM spedizioni 
+                WHERE vettore = 'UPS' 
+                AND final_position = 0 
+                AND awb IS NOT NULL 
+                AND awb != ''
+                ORDER BY data_spedizione DESC
+            """)
+            spedizioni = cur.fetchall()
+            
+            if not spedizioni:
+                print("Nessuna spedizione UPS in transito trovata.\n")
+            else:
+                print(f"Trovate {len(spedizioni)} spedizioni UPS in transito.\n")
+                
+                for i, (spedizione_id, awb) in enumerate(spedizioni, 1):
+                    print(f"[{i}/{len(spedizioni)}] Tracking AWB: {awb} (ID: {spedizione_id})")
+                    
+                    result = service.update_tracking_ups(spedizione_id)
+                    
+                    if result.get("success"):
+                        print(f"  ✓ {result['last_position']}\n")
+                    else:
+                        print(f"  ✗ {result.get('error')}\n")
+                    
+                    # Delay tra richieste (tranne l'ultima)
+                    if i < len(spedizioni):
+                        import time
+                        print(f"  Attesa 5s...\n")
+                        time.sleep(5)
+                
+                print("="*60)
+                print(f"Completato! Processate {len(spedizioni)} spedizioni UPS")
+                print("="*60)
+    print("DEBUG: Script ups_tracking.py avviato!")
+    # Se viene passato un AWB, aggiorna anche il database
+    import sys
+    from tracking_service import TrackingService
 
+    if len(sys.argv) > 1:
+        awb = sys.argv[1]
+        client = UPSTrackingClient()
+        result = client.track_shipment(awb, verbose=True)
 
-if __name__ == "__main__":
-    test_ups_tracking()
+        print("\nAggiornamento database...")
+        # Cerca la spedizione con quell'AWB
+        from db_connector import cursor as db_cursor
+        print(f"DEBUG: Cerco AWB {awb} nel database...")
+        with db_cursor() as (conn, cur):
+            cur.execute("SELECT id FROM spedizioni WHERE awb = %s", [awb])
+            row = cur.fetchone()
+            if row:
+                spedizione_id = row[0]
+            if len(sys.argv) > 1:
+                awb = sys.argv[1]
+                client = UPSTrackingClient()
+                result = client.track_shipment(awb, verbose=True)
+
+                print("\nAggiornamento database...")
+                print(f"DEBUG: Cerco AWB {awb} nel database...")
+                from db_connector import cursor as db_cursor
+                with db_cursor() as (conn, cur):
+                    cur.execute("SELECT id FROM spedizioni WHERE awb = %s", [awb])
+                    row = cur.fetchone()
+                    if row:
+                        spedizione_id = row[0]
+                        print(f"DEBUG: Trovato id={spedizione_id} per AWB={awb}")
+                        service = TrackingService()
+                        update_result = service.update_tracking(spedizione_id)
+                        print(f"DEBUG: Risultato update_tracking: {update_result}")
+                        if update_result.get("success"):
+                            print(f"✓ Database aggiornato per spedizione ID {spedizione_id}")
+                        else:
+                            print(f"⚠ Errore aggiornamento DB: {update_result.get('error')}")
+                    else:
+                        print(f"⚠ Nessuna spedizione trovata con questo AWB ({awb}) nel database.")
+            else:
+                print("Nessun AWB passato: processiamo tutte le spedizioni UPS in transito (final_position=0)...")
+                from db_connector import cursor as db_cursor
+                from tracking_service import TrackingService
+                client = UPSTrackingClient()
+                with db_cursor() as (conn, cur):
+                    cur.execute("SELECT id, awb FROM spedizioni WHERE vettore = 'UPS' AND final_position = 0 AND awb IS NOT NULL AND awb != ''")
+                    rows = cur.fetchall()
+                    print(f"DEBUG: Query trovate {len(rows)} spedizioni UPS in transito.")
+                    if not rows:
+                        print("DEBUG: Nessuna spedizione UPS in transito trovata nel database!")
+                    else:
+                        print("DEBUG: AWB trovati:")
+                        for r in rows:
+                            print(f"  - ID: {r[0]}, AWB: {r[1]}")
+                    for row in rows:
+                        spedizione_id, awb = row
+                        print(f"\nDEBUG: Tracking AWB: {awb} (ID: {spedizione_id})")
+                        result = client.track_shipment(awb, verbose=True)
+                        service = TrackingService()
+                        update_result = service.update_tracking(spedizione_id)
+                        print(f"DEBUG: Risultato update_tracking: {update_result}")
+                        if update_result.get("success"):
+                            print(f"✓ Database aggiornato per spedizione ID {spedizione_id}")
+                        else:
+                            print(f"⚠ Errore aggiornamento DB: {update_result.get('error')}")

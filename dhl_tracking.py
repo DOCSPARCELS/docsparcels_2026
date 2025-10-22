@@ -271,31 +271,10 @@ class DHLTrackingClient:
             }
 
 
-def test_tracking():
-    """Test tracking"""
-    import sys
-    print("Test DHL Tracking")
-    print("=" * 30)
-    client = DHLTrackingClient()
-    if len(sys.argv) > 1:
-        test_awb = sys.argv[1]
-    else:
-        test_awb = "7343641620"  # default se non passato
-    print(f"Tracking: {test_awb}")
-    result = client.track_shipment(test_awb)
-    if 'error' in result:
-        print(f"Errore: {result['error']}")
-    else:
-        print(f"Status: {result.get('status_description', 'N/A')}")
-        print(f"Origin: {result.get('origin', {}).get('description', 'N/A')}")
-        print(f"Destination: {result.get('destination', {}).get('description', 'N/A')}")
-        print(f"Events: {len(result.get('events', []))}")
-
-
 if __name__ == "__main__":
     from db_connector import get_awb_in_transit, update_last_position
     print("Test tracking DHL per tutte le spedizioni in transito (final_position=0)")
-    awb_list = get_awb_in_transit()
+    awb_list = get_awb_in_transit('DHL')
     print(f"Trovati {len(awb_list)} AWB in transito.")
     client = DHLTrackingClient()
     for i, awb in enumerate(awb_list, 1):
@@ -304,11 +283,22 @@ if __name__ == "__main__":
         if 'error' in result:
             status = f"ERRORE: {result['error']}"
             print(f"❌ Errore: {result['error']}")
+            update_last_position(awb, status)
         else:
             status = result.get('status_description', 'N/A')
             print(f"✅ Status: {status}")
             print(f"   Origine: {result.get('origin', {}).get('description', 'N/A')}")
             print(f"   Destinazione: {result.get('destination', {}).get('description', 'N/A')}")
             print(f"   Eventi: {len(result.get('events', []))}")
-        update_last_position(awb, status)
-        print(f"   Aggiornato last_position nel DB: {status}")
+            
+            # Estrai data e ora dall'ultimo evento
+            events = result.get('events', [])
+            if events:
+                last_event = events[-1]  # Ultimo evento (più recente)
+                event_date = last_event.get('date')  # Formato: YYYY-MM-DD
+                event_time = last_event.get('time')  # Formato: HH:MM:SS
+                update_last_position(awb, status, event_date, event_time)
+                print(f"   Aggiornato: {status} @ {event_date} {event_time}")
+            else:
+                update_last_position(awb, status)
+                print(f"   Aggiornato: {status} (nessun evento)")

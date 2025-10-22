@@ -112,12 +112,33 @@ def test_connection(dbname=None):
         return {'ok': False, 'error': str(e), 'trace': traceback.format_exc()}
 
 
-def get_awb_in_transit():
-    """Restituisce la lista di AWB con final_position = 0 dalla tabella spedizioni."""
+def get_awb_in_transit(vettore=None):
+    """Restituisce la lista di AWB con final_position = 0 dalla tabella spedizioni.
+    
+    Args:
+        vettore: Se specificato, filtra solo per quel vettore (es. 'DHL')
+    """
     awb_list = []
     try:
         with cursor() as (conn, cur):
-            cur.execute("SELECT awb FROM spedizioni WHERE final_position = 0 AND awb IS NOT NULL AND awb != ''")
+            if vettore:
+                query = """
+                SELECT awb FROM spedizioni 
+                WHERE final_position = 0 
+                AND awb IS NOT NULL 
+                AND awb != '' 
+                AND vettore = %s
+                """
+                cur.execute(query, (vettore,))
+            else:
+                query = """
+                SELECT awb FROM spedizioni 
+                WHERE final_position = 0 
+                AND awb IS NOT NULL 
+                AND awb != ''
+                """
+                cur.execute(query)
+            
             rows = cur.fetchall()
             awb_list = [row[0] for row in rows]
     except Exception as e:
@@ -125,11 +146,42 @@ def get_awb_in_transit():
     return awb_list
 
 
-def update_last_position(awb, status):
-    """Aggiorna il campo last_position per una spedizione dato l'AWB."""
+def update_last_position(awb, status, date=None, time=None):
+    """Aggiorna il campo last_position e last_position_update per una spedizione dato l'AWB.
+    
+    Args:
+        awb: Numero AWB
+        status: Status testuale
+        date: Data dell'ultimo evento (formato YYYY-MM-DD)
+        time: Ora dell'ultimo evento (formato HH:MM:SS)
+    """
     try:
         with cursor() as (conn, cur):
-            cur.execute("UPDATE spedizioni SET last_position = %s WHERE awb = %s", (status, awb))
+            # Se abbiamo data e ora, aggiorniamo anche last_position_update
+            if date and time:
+                # Combina data e ora in un datetime
+                from datetime import datetime
+                try:
+                    dt_string = f"{date} {time}"
+                    dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
+                    
+                    cur.execute(
+                        "UPDATE spedizioni SET last_position = %s, last_position_update = %s WHERE awb = %s", 
+                        (status, dt_obj, awb)
+                    )
+                except ValueError:
+                    # Se parsing fallisce, aggiorna solo last_position
+                    cur.execute(
+                        "UPDATE spedizioni SET last_position = %s WHERE awb = %s", 
+                        (status, awb)
+                    )
+            else:
+                # Solo status, senza timestamp
+                cur.execute(
+                    "UPDATE spedizioni SET last_position = %s WHERE awb = %s", 
+                    (status, awb)
+                )
+            
             conn.commit()
     except Exception as e:
         print(f"Errore aggiornamento last_position per AWB {awb}: {e}")

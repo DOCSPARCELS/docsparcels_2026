@@ -12,6 +12,9 @@ import mysql.connector
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
+# Dizionario globale per mappature eventi
+event_mappings = {}
+
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 
 # Redirect legacy /img/* requests to /html/img/*
@@ -201,9 +204,6 @@ def serve_home():
         sort_dir=sort_dir,
         only_transit=only_transit
     )
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5003, debug=True)
 
 def get_event_display_name(vettore, codice):
     """Ottiene il nome personalizzato per un codice evento (retrocompatibilità)"""
@@ -1583,6 +1583,24 @@ if __name__ == "__main__":
         LOG.info("🔄 Servizio tracking automatico avviato (ogni 30 minuti)")
     except Exception as e:
         LOG.warning("⚠️ Impossibile avviare servizio tracking automatico: %s", e)
+    
+    # Avvio il server API
+    LOG.info("🚀 Avvio server API su http://0.0.0.0:5003")
+    LOG.info("📄 File statici serviti da: http://0.0.0.0:5003/spedizioni.html")
+    LOG.info("📝 Modulo spedizioni: http://0.0.0.0:5003/modulo")
+    app.run(host="0.0.0.0", port=5003, debug=False)    
+    # Avvia il servizio di tracking automatico in background ogni 30 minuti
+    try:
+        from background_tracking import BackgroundTrackingService
+        bg_service = BackgroundTrackingService(interval_minutes=30)
+        bg_service.start()
+        import atexit
+        def cleanup():
+            bg_service.stop()
+        atexit.register(cleanup)
+        LOG.info("🔄 Servizio tracking automatico avviato (ogni 30 minuti)")
+    except Exception as e:
+        LOG.warning("⚠️ Impossibile avviare servizio tracking automatico: %s", e)
 
 
 @app.route('/<path:filename>')
@@ -1632,9 +1650,4 @@ def modulo():
     return send_file('spedzione_modulo.html')
 
 
-if __name__ == "__main__":
-    # Avvio il server API
-    LOG.info("🚀 Avvio server API su http://0.0.0.0:5003")
-    LOG.info("📄 File statici serviti da: http://0.0.0.0:5003/spedizioni.html")
-    LOG.info("📝 Modulo spedizioni: http://0.0.0.0:5003/modulo")
-    app.run(host="0.0.0.0", port=5003, debug=False)
+
