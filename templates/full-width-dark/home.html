@@ -1262,7 +1262,7 @@
 				
 				<!-- Row Spedizioni in transito -->
 				<div class="row">
-					<div class="col-lg-8 col-md-7 col-sm-12 col-xs-12">
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 						<div class="panel panel-default card-view panel-refresh">
 							<div class="refresh-container">
 								<div class="la-anim-1"></div>
@@ -1301,9 +1301,14 @@
     <table class="table table-hover mb-0" id="spedizioni-table">
         <thead>
             <tr>
+				<th>MOS</th>
                 <th>Data</th>
                 <th>Mittente</th>
+				<th>Città</th>
+    			<th>Nazione</th>
                 <th>Destinatario</th>
+				<th>Città</th>
+				<th>Nazione</th>
                 <th>Vettore</th>
                 <th>Status</th>
             </tr>
@@ -1311,9 +1316,14 @@
         <tbody id="spedizioni-tbody">
             {% for spedizione in spedizioni %}
             <tr>
+				<td><span class="txt-dark weight-500">{{ spedizione.id | default('') }}</span></td>
                 <td><span class="txt-dark weight-500">{{ spedizione.data_spedizione.strftime('%d.%m.%y') if spedizione.data_spedizione is defined and spedizione.data_spedizione }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.mitt_ragione_sociale | default('') }}</span></td>
+				<td><span class="txt-dark weight-500">{{ spedizione.mitt_citta | default('') }}</span></td>
+				<td><span class="txt-dark weight-500">{{ spedizione.mitt_codice_nazione | default('') }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.dest_ragione_sociale | default('') }}</span></td>
+				<td><span class="txt-dark weight-500">{{ spedizione.dest_citta | default('') }}</span></td>
+				<td><span class="txt-dark weight-500">{{ spedizione.dest_codice_nazione | default('') }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.vettore | default('') }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.last_position | default('') }}</span></td>
             </tr>
@@ -1401,6 +1411,7 @@ function loadPage(page, sort_by, sort_dir, page_size) {
 						</div>
 					</div>
 				</div>
+				<!--
 					<div class="col-lg-4 col-md-5 col-sm-12 col-xs-12">
 						<div class="panel panel-default card-view panel-refresh">
 							<div class="refresh-container">
@@ -1448,7 +1459,7 @@ function loadPage(page, sort_by, sort_dir, page_size) {
 						</div>	
 					</div>	
 				</div>
-				
+				-->
 
 				<!-- Row -->
 

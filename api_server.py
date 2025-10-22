@@ -181,7 +181,7 @@ def serve_home():
     offset = (page - 1) * page_size
     # Query ordinata e paginata con filtro
     query = f"""
-        SELECT data_spedizione, mitt_ragione_sociale, dest_ragione_sociale, vettore, last_position
+        SELECT id, data_spedizione, mitt_ragione_sociale, mitt_citta, mitt_codice_nazione, dest_ragione_sociale, dest_citta, dest_codice_nazione, vettore, last_position
         FROM spedizioni
         {where_sql}
         ORDER BY {sort_by} {sort_dir}
@@ -189,8 +189,19 @@ def serve_home():
     """
     cur.execute(query, (page_size, offset))
     spedizioni = [
-        {"data_spedizione": row[0], "mitt_ragione_sociale": row[1], "dest_ragione_sociale": row[2], "vettore": row[3], "last_position": row[4],}
-        for row in cur.fetchall() if row[1] is not None
+        {
+            "id": row[0],
+            "data_spedizione": row[1], 
+            "mitt_ragione_sociale": row[2],
+            "mitt_citta": row[3],
+            "mitt_codice_nazione": row[4],
+            "dest_ragione_sociale": row[5],
+            "dest_citta": row[6],
+            "dest_codice_nazione": row[7],
+            "vettore": row[8],
+            "last_position": row[9],
+        }
+        for row in cur.fetchall() if row[2] is not None
     ]
     cur.close()
     conn.close()
@@ -443,10 +454,12 @@ def _row_to_item(row, idx: Dict[str, int]) -> Dict[str, Any]:
                 if vv:
                     return vv
         return None
-
-    mitt_nome = pick("mitt_ragione_sociale", "mitt_cliente", "mitt_contatto")
-    dest_nome = pick("dest_ragione_sociale", "dest_cliente", "dest_contatto")
-
+    id = pick("id")
+    mitt_nome = pick("mitt_ragione_sociale", "mitt_cliente", "mitt_contatto", "mitt_citta", "mitt_codice_nazione")
+    mitt_citta = g("mitt_citta") if "mitt_citta" in idx else None
+    mitt_codice_nazione = g("mitt_codice_nazione") if "mitt_codice_nazione" in idx else None
+    dest_nome = pick("dest_ragione_sociale", "dest_cliente", "dest_contatto", "dest_citta", "dest_codice_nazione")
+    
     # optional service/billing fields (if present in the result set)
     servizio = pick("servizio", "service", "product", "tipo_servizio", "service_code")
     tariffa = pick("tariffa", "price", "fare", "rate", "amount_before_tax", "tariff", "prezzo")
@@ -484,6 +497,8 @@ def _row_to_item(row, idx: Dict[str, int]) -> Dict[str, Any]:
     
     return {
         "id": g("id"),
+        "mitt_citta": mitt_citta,
+        "mitt_codice_nazione": mitt_codice_nazione,
         "vettore": vettore,
         "awb": g("awb"),
         "data_spedizione": data_iso,
@@ -501,6 +516,8 @@ def _row_to_item(row, idx: Dict[str, int]) -> Dict[str, Any]:
         "dim3": dim3,
         "mittente": {
             "nome": mitt_nome,
+            "citta": mitt_citta,
+            "codice_nazione": mitt_codice_nazione,
             "cliente": g("mitt_cliente") if "mitt_cliente" in idx else None,
             "ragione_sociale": g("mitt_ragione_sociale") if "mitt_ragione_sociale" in idx else None,
             "identificativo": g("mitt_identificativo") if "mitt_identificativo" in idx else None,
@@ -509,9 +526,9 @@ def _row_to_item(row, idx: Dict[str, int]) -> Dict[str, Any]:
             "indirizzo3": g("mitt_indirizzo3") if "mitt_indirizzo3" in idx else None,
             "civico": g("mitt_civico") if "mitt_civico" in idx else None,
             "cap": pick("mitt_cap"),
-            "citta": pick("mitt_citta"),
+            "citta": mitt_citta,
             "provincia": pick("mitt_provincia"),
-            "codice_nazione": g("mitt_codice_nazione") if "mitt_codice_nazione" in idx else None,
+            "codice_nazione": mitt_codice_nazione,
             "paese": pick("mitt_nazione", "mitt_codice_nazione"),
             "contatto": pick("mitt_contatto"),
             "telefono": pick("mitt_telefono", "mitt_cellulare"),
