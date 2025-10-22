@@ -415,16 +415,3 @@ def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
             LOG.exception("Errore lettura vettore per spedizione %s", spedizione_id)
             return None
 
-    def test_tracking_service():
-        """Test del servizio tracking"""
-        service = TrackingService()
-        
-        # Test con ID di esempio
-        result = service.update_tracking(1)
-        print("Risultato test tracking:")
-        print(result)
-
-
-if __name__ == "__main__":
-    # Avvia test
-    test_tracking_service()
