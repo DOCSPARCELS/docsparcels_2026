@@ -35,13 +35,21 @@ def _env(keys: tuple[str, ...], default=None):
 
 def get_db_config(dbname=None):
     """Return a dict with connection parameters read from environment (.env).
-
-    Supports both the new (`DB_USER`, `DB_NAME`) and legacy (`DB_USERNAME`,
-    `DB_DATABASE`) variable names so existing deployments continue to work.
+    
+    Auto-detects if running locally or on OVH server.
     """
+    import socket
+    
+    # Rileva se siamo sul server OVH
+    hostname = socket.gethostname()
+    is_ovh_server = '91.134.91.229' in hostname or hostname.startswith('vps-')
+    
+    # Se siamo su OVH, usa porta 3306, altrimenti 3307 (tunnel SSH)
+    db_port = 3306 if is_ovh_server else 3307
+    
     return {
         'host': _env(('DB_HOST',), '127.0.0.1'),
-        'port': int(_env(('DB_PORT',), 3306)),
+        'port': int(_env(('DB_PORT',), db_port)),  # Auto-detect
         'user': _env(('DB_USER', 'DB_USERNAME')),
         'password': _env(('DB_PASSWORD', 'DB_PASS')),
         'database': dbname or _env(('DB_NAME', 'DB_DATABASE')),
