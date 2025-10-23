@@ -31,126 +31,44 @@ class TrackingService:
         self.fedex_client = FedExTracking()
         self.tnt_client = TNTTrackingClient()
     
-def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
-    """
-    Router che chiama il metodo specifico per ogni vettore
-    
-    Args:
-        spedizione_id: ID della spedizione
+    def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
+        """
+        Router che chiama il metodo specifico per ogni vettore
         
-    Returns:
-        Dict con risultato operazione
-    """
-    try:
-        # Leggi vettore
-        spedizione_data = self._get_spedizione_data(spedizione_id)
-        if not spedizione_data:
-            return {"success": False, "error": "Spedizione non trovata"}
-        
-        vettore = spedizione_data.get('vettore', '').upper()
-        
-        # Router: chiama metodo specifico per vettore
-        if vettore == "UPS":
-            return self.update_tracking_ups(spedizione_id)
-        elif vettore == "DHL":
-            return self.update_tracking_dhl(spedizione_id)
-        elif vettore == "SDA":
-            return self.update_tracking_sda(spedizione_id)
-        elif vettore == "BRT":
-            return self.update_tracking_brt(spedizione_id)
-        elif vettore in ["FEDEX", "FED"]:
-            return self.update_tracking_fedex(spedizione_id)
-        elif vettore == "TNT":
-            return self.update_tracking_tnt(spedizione_id)
-        else:
-            return {"success": False, "error": f"Vettore {vettore} non supportato"}
+        Args:
+            spedizione_id: ID della spedizione
             
-    except Exception as e:
-        LOG.exception("Errore routing tracking spedizione %s", spedizione_id)
-        return {"success": False, "error": f"Errore interno: {str(e)}"}
-
-    def _update_tracking_data(self, spedizione_id: int, last_position: str, events: list) -> bool:
-        """Aggiorna last_position e final_position nel database"""
+        Returns:
+            Dict con risultato operazione
+        """
         try:
-            if not last_position:
-                LOG.warning(f"Nessuno status valido per spedizione {spedizione_id}")
-                return False
-            
-            vettore = self._get_vettore_for_spedizione(spedizione_id)
-            final_position = self._determine_final_position(last_position, vettore)
-            
-            with db_cursor() as (conn, cur):
-                cur.execute(
-                    """UPDATE spedizioni 
-                    SET last_position = %s, final_position = %s 
-                    WHERE id = %s""",
-                    [last_position, final_position, spedizione_id]
-                )
-                conn.commit()
-                
-                if cur.rowcount > 0:
-                    LOG.info(f"✅ Aggiornato tracking spedizione {spedizione_id}: '{last_position}' (final={final_position})")
-                    return True
-                else:
-                    LOG.warning(f"⚠️ Nessuna riga aggiornata per spedizione {spedizione_id}")
-                    return False
-                    
-        except Exception as e:
-            LOG.exception("Errore aggiornamento tracking per spedizione %s", spedizione_id)
-            return False
-    
-    def update_tracking_ups(self, spedizione_id: int) -> Dict[str, Any]:
-        """Aggiorna tracking specifico per UPS - dati grezzi"""
-        try:
+            # Leggi vettore
             spedizione_data = self._get_spedizione_data(spedizione_id)
             if not spedizione_data:
                 return {"success": False, "error": "Spedizione non trovata"}
             
-            awb = spedizione_data.get('awb', '')
-            if not awb:
-                return {"success": False, "error": "AWB mancante"}
+            vettore = spedizione_data.get('vettore', '').upper()
             
-            # Tracking UPS
-            result = self.ups_client.track_shipment(awb, verbose=False)
-            if result.get('error'):
-                return {"success": False, "error": result['error'], "vettore": "UPS", "awb": awb}
-            
-            # Estrai dati grezzi
-            tracking_data = self._extract_ups_status(result)
-            description, date_str, time_str = tracking_data
-            
-            if not description:
-                return {"success": False, "error": "Nessuno status ricevuto"}
-            
-            # Aggiorna database - SOLO DATI GREZZI
-            with db_cursor() as (conn, cur):
-                if date_str and time_str:
-                    from datetime import datetime
-                    dt_obj = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
-                    cur.execute(
-                        """UPDATE spedizioni 
-                        SET last_position = %s, last_position_update = %s 
-                        WHERE id = %s""",
-                        [description, dt_obj, spedizione_id]
-                    )
-                else:
-                    cur.execute(
-                        """UPDATE spedizioni 
-                        SET last_position = %s 
-                        WHERE id = %s""",
-                        [description, spedizione_id]
-                    )
-                conn.commit()
+            # Router: chiama metodo specifico per vettore
+            if vettore == "UPS":
+                return self.update_tracking_ups(spedizione_id)
+            elif vettore == "DHL":
+                return self.update_tracking_dhl(spedizione_id)
+            elif vettore == "SDA":
+                return self.update_tracking_sda(spedizione_id)
+            elif vettore == "BRT":
+                return self.update_tracking_brt(spedizione_id)
+            elif vettore in ["FEDEX", "FED"]:
+                return self.update_tracking_fedex(spedizione_id)
+            elif vettore == "TNT":
+                return self.update_tracking_tnt(spedizione_id)
+            else:
+                return {"success": False, "error": f"Vettore {vettore} non supportato"}
                 
-                if cur.rowcount > 0:
-                    LOG.info(f"✅ Tracking UPS {spedizione_id} aggiornato: {description}")
-                    return {"success": True, "last_position": description, "vettore": "UPS", "awb": awb}
-                else:
-                    return {"success": False, "error": "Errore aggiornamento database"}
-                    
         except Exception as e:
-            LOG.exception("Errore tracking UPS spedizione %s", spedizione_id)
-            return {"success": False, "error": str(e)}
+            LOG.exception("Errore routing tracking spedizione %s", spedizione_id)
+            return {"success": False, "error": f"Errore interno: {str(e)}"}
+
 
     def _get_spedizione_data(self, spedizione_id: int) -> Optional[Dict[str, Any]]:
         """Legge vettore e AWB dal database"""
@@ -167,7 +85,7 @@ def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
         except Exception as e:
             LOG.exception("Errore lettura spedizione %s", spedizione_id)
             return None
-    
+
     def _get_tracking_data(self, vettore: str, awb: str) -> Dict[str, Any]:
         """
         Ottiene i dati completi di tracking dal vettore appropriato
@@ -281,85 +199,199 @@ def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
                 'events': [],
                 'error': f"Errore interno: {str(e)}"
             }
-    
+
+    def _update_tracking_data(self, spedizione_id: int, last_position: str, events: list) -> bool:
+        """Aggiorna last_position e final_position nel database"""
+        try:
+            if not last_position:
+                LOG.warning(f"Nessuno status valido per spedizione {spedizione_id}")
+                return False
+            
+            vettore = self._get_vettore_for_spedizione(spedizione_id)
+            final_position = self._determine_final_position(last_position, vettore)
+            
+            with db_cursor() as (conn, cur):
+                cur.execute(
+                    """UPDATE spedizioni 
+                    SET last_position = %s, final_position = %s 
+                    WHERE id = %s""",
+                    [last_position, final_position, spedizione_id]
+                )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Aggiornato tracking spedizione {spedizione_id}: '{last_position}' (final={final_position})")
+                    return True
+                else:
+                    LOG.warning(f"⚠️ Nessuna riga aggiornata per spedizione {spedizione_id}")
+                    return False
+                    
+        except Exception as e:
+            LOG.exception("Errore aggiornamento tracking per spedizione %s", spedizione_id)
+            return False
+
+    def _get_vettore_for_spedizione(self, spedizione_id: int) -> Optional[str]:
+        """Ottiene il vettore per una spedizione specifica"""
+        try:
+            with db_cursor() as (conn, cur):
+                cur.execute(
+                    "SELECT vettore FROM spedizioni WHERE id = %s",
+                    [spedizione_id]
+                )
+                row = cur.fetchone()
+                return row[0] if row else None
+        except Exception as e:
+            LOG.exception("Errore lettura vettore per spedizione %s", spedizione_id)
+            return None
+
+
+
+    def update_tracking_ups(self, spedizione_id: int) -> Dict[str, Any]:
+        """Aggiorna tracking specifico per UPS - dati grezzi"""
+        try:
+            spedizione_data = self._get_spedizione_data(spedizione_id)
+            if not spedizione_data:
+                return {"success": False, "error": "Spedizione non trovata"}
+            
+            awb = spedizione_data.get('awb', '')
+            if not awb:
+                return {"success": False, "error": "AWB mancante"}
+            
+            # Tracking UPS
+            result = self.ups_client.track_shipment(awb, verbose=False)
+            if result.get('error'):
+                return {"success": False, "error": result['error'], "vettore": "UPS", "awb": awb}
+            
+            # Estrai dati grezzi
+            tracking_data = self._extract_ups_status(result)
+            description, date_str, time_str = tracking_data
+            
+            if not description:
+                return {"success": False, "error": "Nessuno status ricevuto"}
+            
+            # Aggiorna database - SOLO DATI GREZZI
+            with db_cursor() as (conn, cur):
+                if date_str and time_str:
+                    from datetime import datetime
+                    dt_obj = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s, last_position_update = %s 
+                        WHERE id = %s""",
+                        [description, dt_obj, spedizione_id]
+                    )
+                else:
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s 
+                        WHERE id = %s""",
+                        [description, spedizione_id]
+                    )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Tracking UPS {spedizione_id} aggiornato: {description}")
+                    return {"success": True, "last_position": description, "vettore": "UPS", "awb": awb}
+                else:
+                    return {"success": False, "error": "Errore aggiornamento database"}
+                    
+        except Exception as e:
+            LOG.exception("Errore tracking UPS spedizione %s", spedizione_id)
+            return {"success": False, "error": str(e)}
+
     def _extract_ups_status(self, ups_result: Dict[str, Any]) -> tuple:
-        """Estrae description, date e time da risultato UPS per aggiornamento DB
-        
-        Returns:
-            tuple: (description, date, time) oppure (None, None, None) se errore
-        """
-        try:
-            if ups_result.get('error'):
+            """Estrae description, date e time da risultato UPS per aggiornamento DB
+            
+            Returns:
+                tuple: (description, date, time) oppure (None, None, None) se errore
+            """
+            try:
+                if ups_result.get('error'):
+                    return (None, None, None)
+                
+                events = ups_result.get('events', [])
+                if events:
+                    latest_event = events[0]  # Primo evento = più recente
+                    
+                    # Estrai description
+                    description = latest_event.get('description', latest_event.get('status_type', ''))
+                    
+                    # Estrai date e time
+                    date = latest_event.get('date', '')
+                    time = latest_event.get('time', '')
+                    
+                    if description and date and time:
+                        return (description, date, time)
+                
+                # Fallback se non ci sono eventi
+                status = ups_result.get('status_description', ups_result.get('status', ''))
+                return (status, None, None) if status else (None, None, None)
+                
+            except Exception as e:
+                LOG.exception("Errore parsing UPS")
                 return (None, None, None)
-            
-            events = ups_result.get('events', [])
-            if events:
-                latest_event = events[0]  # Primo evento = più recente
-                
-                # Estrai description
-                description = latest_event.get('description', latest_event.get('status_type', ''))
-                
-                # Estrai date e time
-                date = latest_event.get('date', '')
-                time = latest_event.get('time', '')
-                
-                if description and date and time:
-                    return (description, date, time)
-            
-            # Fallback se non ci sono eventi
-            status = ups_result.get('status_description', ups_result.get('status', ''))
-            return (status, None, None) if status else (None, None, None)
-            
-        except Exception as e:
-            LOG.exception("Errore parsing UPS")
-            return (None, None, None)
-    
-    def _extract_dhl_status(self, dhl_result: Dict[str, Any]) -> str:
-        """Estrae il messaggio di status da risultato DHL"""
+
+
+    def update_tracking_fedex(self, spedizione_id: int) -> Dict[str, Any]:
+        """Aggiorna tracking specifico per FedEx - dati grezzi"""
         try:
-            if dhl_result.get('error'):
-                return None
+            spedizione_data = self._get_spedizione_data(spedizione_id)
+            if not spedizione_data:
+                return {"success": False, "error": "Spedizione non trovata"}
             
-            events = dhl_result.get('events', [])
-            if events:
-                latest_event = events[-1]
-                status = latest_event.get('description', '')
-                if status:
-                    return status
+            awb = spedizione_data.get('awb', '')
+            if not awb:
+                return {"success": False, "error": "AWB mancante"}
             
-            status = dhl_result.get('status_description', dhl_result.get('status', ''))
-            return status if status else None
+            # Tracking FedEx
+            result = self.fedex_client.track_shipment(awb)
+            if not result.get('success'):
+                error_msg = result.get('error', 'Errore FedEx')
+                return {"success": False, "error": error_msg, "vettore": "FEDEX", "awb": awb}
             
+            # Estrai primo evento (più recente)
+            events = result.get('events', [])
+            if not events:
+                return {"success": False, "error": "Nessun evento ricevuto"}
+            
+            latest_event = events[0]
+            description = latest_event.get('descrizione', '')
+            date_str = latest_event.get('data', '')
+            time_str = latest_event.get('ora', '')
+            
+            if not description:
+                return {"success": False, "error": "Nessuno status ricevuto"}
+            
+            # Aggiorna database - SOLO DATI GREZZI
+            with db_cursor() as (conn, cur):
+                if date_str and time_str:
+                    from datetime import datetime
+                    dt_obj = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s, last_position_update = %s 
+                        WHERE id = %s""",
+                        [description, dt_obj, spedizione_id]
+                    )
+                else:
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s 
+                        WHERE id = %s""",
+                        [description, spedizione_id]
+                    )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Tracking FedEx {spedizione_id} aggiornato: {description}")
+                    return {"success": True, "last_position": description, "vettore": "FEDEX", "awb": awb}
+                else:
+                    return {"success": False, "error": "Errore aggiornamento database"}
+                    
         except Exception as e:
-            LOG.exception("Errore parsing DHL")
-            return None
-    
-    def _extract_sda_status(self, sda_result: Dict[str, Any]) -> str:
-        """Estrae il messaggio di status da risultato SDA"""
-        try:
-            if not sda_result.get('success'):
-                return None
-            
-            status = sda_result.get('last_position', '')
-            return status if status and not status.startswith('Errore') else None
-            
-        except Exception as e:
-            LOG.exception("Errore parsing SDA")
-            return None
-    
-    def _extract_brt_status(self, brt_result: Dict[str, Any]) -> str:
-        """Estrae il messaggio di status da risultato BRT"""
-        try:
-            if not brt_result.get('success'):
-                return None
-            
-            status = brt_result.get('last_position', '')
-            return status if status and not status.startswith('Errore') else None
-            
-        except Exception as e:
-            LOG.exception("Errore parsing BRT")
-            return None
-    
+            LOG.exception("Errore tracking FedEx spedizione %s", spedizione_id)
+            return {"success": False, "error": str(e)}
+
     def _extract_fedex_status(self, fedex_events: list) -> str:
         """Estrae il codice evento FedEx"""
         try:
@@ -380,6 +412,285 @@ def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
         except Exception as e:
             LOG.exception("Errore parsing FedEx")
             return None
+
+
+    def update_tracking_dhl(self, spedizione_id: int) -> Dict[str, Any]:
+        """Aggiorna tracking specifico per DHL - dati grezzi"""
+        try:
+            spedizione_data = self._get_spedizione_data(spedizione_id)
+            if not spedizione_data:
+                return {"success": False, "error": "Spedizione non trovata"}
+            
+            awb = spedizione_data.get('awb', '')
+            if not awb:
+                return {"success": False, "error": "AWB mancante"}
+            
+            # Tracking DHL
+            result = self.dhl_client.track_shipment(awb)
+            if result.get('error'):
+                return {"success": False, "error": result['error'], "vettore": "DHL", "awb": awb}
+            
+            # Estrai primo evento (più recente)
+            events = result.get('events', [])
+            if not events:
+                return {"success": False, "error": "Nessun evento ricevuto"}
+            
+            latest_event = events[0]
+            description = latest_event.get('description', '')
+            date_str = latest_event.get('date', '')
+            time_str = latest_event.get('time', '')
+            
+            if not description:
+                return {"success": False, "error": "Nessuno status ricevuto"}
+            
+            # Aggiorna database - SOLO DATI GREZZI
+            with db_cursor() as (conn, cur):
+                if date_str and time_str:
+                    from datetime import datetime
+                    dt_obj = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s, last_position_update = %s 
+                        WHERE id = %s""",
+                        [description, dt_obj, spedizione_id]
+                    )
+                else:
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s 
+                        WHERE id = %s""",
+                        [description, spedizione_id]
+                    )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Tracking DHL {spedizione_id} aggiornato: {description}")
+                    return {"success": True, "last_position": description, "vettore": "DHL", "awb": awb}
+                else:
+                    return {"success": False, "error": "Errore aggiornamento database"}
+                    
+        except Exception as e:
+            LOG.exception("Errore tracking DHL spedizione %s", spedizione_id)
+            return {"success": False, "error": str(e)}
+
+    def _extract_dhl_status(self, dhl_result: Dict[str, Any]) -> str:
+        """Estrae il messaggio di status da risultato DHL"""
+        try:
+            if dhl_result.get('error'):
+                return None
+            
+            events = dhl_result.get('events', [])
+            if events:
+                latest_event = events[-1]
+                status = latest_event.get('description', '')
+                if status:
+                    return status
+            
+            status = dhl_result.get('status_description', dhl_result.get('status', ''))
+            return status if status else None
+            
+        except Exception as e:
+            LOG.exception("Errore parsing DHL")
+            return None
+
+
+    def update_tracking_sda(self, spedizione_id: int) -> Dict[str, Any]:
+        """Aggiorna tracking specifico per SDA"""
+        try:
+            spedizione_data = self._get_spedizione_data(spedizione_id)
+            if not spedizione_data:
+                return {"success": False, "error": "Spedizione non trovata"}
+            
+            awb = spedizione_data.get('awb', '')
+            if not awb:
+                return {"success": False, "error": "AWB mancante"}
+            
+            # Tracking SDA
+            result = self.sda_client.track(awb)
+            if not result.get('success'):
+                return {"success": False, "error": result.get('message', 'Errore SDA'), "vettore": "SDA", "awb": awb}
+            
+            last_position = result.get('last_position', '')
+            if not last_position:
+                return {"success": False, "error": "Nessuno status ricevuto"}
+            
+            # Aggiorna database
+            with db_cursor() as (conn, cur):
+                cur.execute(
+                    """UPDATE spedizioni 
+                    SET last_position = %s 
+                    WHERE id = %s""",
+                    [last_position, spedizione_id]
+                )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Tracking SDA {spedizione_id} aggiornato: {last_position}")
+                    return {"success": True, "last_position": last_position, "vettore": "SDA", "awb": awb}
+                else:
+                    return {"success": False, "error": "Errore aggiornamento database"}
+                    
+        except Exception as e:
+            LOG.exception("Errore tracking SDA spedizione %s", spedizione_id)
+            return {"success": False, "error": str(e)}
+
+    def _extract_sda_status(self, sda_result: Dict[str, Any]) -> str:
+        """Estrae il messaggio di status da risultato SDA"""
+        try:
+            if not sda_result.get('success'):
+                return None
+            
+            status = sda_result.get('last_position', '')
+            return status if status and not status.startswith('Errore') else None
+            
+        except Exception as e:
+            LOG.exception("Errore parsing SDA")
+            return None
+
+
+    def update_tracking_brt(self, spedizione_id: int) -> Dict[str, Any]:
+        """Aggiorna tracking specifico per BRT - dati grezzi"""
+        try:
+            spedizione_data = self._get_spedizione_data(spedizione_id)
+            if not spedizione_data:
+                return {"success": False, "error": "Spedizione non trovata"}
+            
+            awb = spedizione_data.get('awb', '')
+            if not awb:
+                return {"success": False, "error": "AWB mancante"}
+            
+            # Tracking BRT
+            result = self.brt_client.track(awb)
+            if not result.get('success'):
+                error_msg = result.get('message', 'Errore BRT')
+                return {"success": False, "error": error_msg, "vettore": "BRT", "awb": awb}
+            
+            # Estrai primo evento (più recente)
+            events = result.get('events', [])
+            if not events:
+                return {"success": False, "error": "Nessun evento ricevuto"}
+            
+            latest_event = events[0]
+            description = latest_event.get('description', '')
+            date_str = latest_event.get('date', '')
+            time_str = latest_event.get('time', '')
+            
+            if not description:
+                return {"success": False, "error": "Nessuno status ricevuto"}
+            
+            # Aggiorna database - SOLO DATI GREZZI
+            with db_cursor() as (conn, cur):
+                if date_str and time_str:
+                    from datetime import datetime
+                    # BRT usa formato DD.MM.YYYY e HH.MM
+                    dt_obj = datetime.strptime(f"{date_str} {time_str.replace('.', ':')}", "%d.%m.%Y %H:%M")
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s, last_position_update = %s 
+                        WHERE id = %s""",
+                        [description, dt_obj, spedizione_id]
+                    )
+                else:
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s 
+                        WHERE id = %s""",
+                        [description, spedizione_id]
+                    )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Tracking BRT {spedizione_id} aggiornato: {description}")
+                    return {"success": True, "last_position": description, "vettore": "BRT", "awb": awb}
+                else:
+                    return {"success": False, "error": "Errore aggiornamento database"}
+                    
+        except Exception as e:
+            LOG.exception("Errore tracking BRT spedizione %s", spedizione_id)
+            return {"success": False, "error": str(e)}
+
+    def _extract_brt_status(self, brt_result: Dict[str, Any]) -> str:
+        """Estrae il messaggio di status da risultato BRT"""
+        try:
+            if not brt_result.get('success'):
+                return None
+            
+            status = brt_result.get('last_position', '')
+            return status if status and not status.startswith('Errore') else None
+            
+        except Exception as e:
+            LOG.exception("Errore parsing BRT")
+            return None
+
+
+    def update_tracking_tnt(self, spedizione_id: int) -> Dict[str, Any]:
+        """Aggiorna tracking specifico per TNT - dati grezzi"""
+        try:
+            spedizione_data = self._get_spedizione_data(spedizione_id)
+            if not spedizione_data:
+                return {"success": False, "error": "Spedizione non trovata"}
+            
+            awb = spedizione_data.get('awb', '')
+            if not awb:
+                return {"success": False, "error": "AWB mancante"}
+            
+            # Tracking TNT
+            result = self.tnt_client.track_shipment(awb)
+            if result.get('status') != 'success':
+                error_msg = result.get('message', 'Errore TNT')
+                return {"success": False, "error": error_msg, "vettore": "TNT", "awb": awb}
+            
+            # Estrai status corrente
+            description = result.get('current_status', '')
+            
+            # Se non c'è current_status, prova con il primo evento
+            if not description:
+                events = result.get('events', [])
+                if events:
+                    latest_event = events[0]
+                    description = latest_event.get('description', '')
+            
+            if not description:
+                return {"success": False, "error": "Nessuno status ricevuto"}
+            
+            # Aggiorna database - SOLO DATI GREZZI
+            with db_cursor() as (conn, cur):
+                last_update = result.get('last_update', '')
+                if last_update:
+                    from datetime import datetime
+                    try:
+                        dt_obj = datetime.fromisoformat(last_update)
+                        cur.execute(
+                            """UPDATE spedizioni 
+                            SET last_position = %s, last_position_update = %s 
+                            WHERE id = %s""",
+                            [description, dt_obj, spedizione_id]
+                        )
+                    except:
+                        cur.execute(
+                            """UPDATE spedizioni 
+                            SET last_position = %s 
+                            WHERE id = %s""",
+                            [description, spedizione_id]
+                        )
+                else:
+                    cur.execute(
+                        """UPDATE spedizioni 
+                        SET last_position = %s 
+                        WHERE id = %s""",
+                        [description, spedizione_id]
+                    )
+                conn.commit()
+                
+                if cur.rowcount > 0:
+                    LOG.info(f"✅ Tracking TNT {spedizione_id} aggiornato: {description}")
+                    return {"success": True, "last_position": description, "vettore": "TNT", "awb": awb}
+                else:
+                    return {"success": False, "error": "Errore aggiornamento database"}
+                    
+        except Exception as e:
+            LOG.exception("Errore tracking TNT spedizione %s", spedizione_id)
+            return {"success": False, "error": str(e)}
     
     def _extract_tnt_status(self, tnt_result: Dict[str, Any]) -> str:
         """Estrae il codice/status TNT"""
@@ -400,18 +711,6 @@ def update_tracking(self, spedizione_id: int) -> Dict[str, Any]:
         except Exception as e:
             LOG.exception("Errore parsing TNT")
             return None
- 
-    def _get_vettore_for_spedizione(self, spedizione_id: int) -> Optional[str]:
-        """Ottiene il vettore per una spedizione specifica"""
-        try:
-            with db_cursor() as (conn, cur):
-                cur.execute(
-                    "SELECT vettore FROM spedizioni WHERE id = %s",
-                    [spedizione_id]
-                )
-                row = cur.fetchone()
-                return row[0] if row else None
-        except Exception as e:
-            LOG.exception("Errore lettura vettore per spedizione %s", spedizione_id)
-            return None
+
+
 

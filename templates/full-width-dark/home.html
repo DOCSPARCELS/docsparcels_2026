@@ -1310,6 +1310,7 @@
 				<th>Città</th>
 				<th>Nazione</th>
                 <th>Vettore</th>
+				<th>AWB</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -1325,6 +1326,7 @@
 				<td><span class="txt-dark weight-500">{{ spedizione.dest_citta | default('') }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.dest_codice_nazione | default('') }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.vettore | default('') }}</span></td>
+				<td><span class="txt-dark weight-500">{{ spedizione.awb | default('') }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.last_position | default('') }}</span></td>
             </tr>
             {% endfor %}
@@ -1332,6 +1334,7 @@
     </table>
     <div id="pagination-ajax" class="pagination-container" style="margin-top:20px; text-align:center;"></div>
 </div>
+{% set spedizioni_count = spedizioni|length if spedizioni is defined else 0 %}
 <script>
 function updateRecordInfo(showing, total, current_page, total_pages) {
 	document.getElementById('records-showing').textContent = showing;
@@ -1345,10 +1348,16 @@ function renderTable(items) {
     tbody.innerHTML = '';
     items.forEach(function(spedizione) {
         tbody.innerHTML += `<tr>
+            <td><span class='txt-dark weight-500'>${spedizione.id || ''}</span></td>
             <td><span class='txt-dark weight-500'>${formatDate(spedizione.data_spedizione)}</span></td>
-            <td><span class='txt-dark weight-500'>${spedizione.mittente?.nome || spedizione.mitt_ragione_sociale || ''}</span></td>
-            <td><span class='txt-dark weight-500'>${spedizione.destinatario?.nome || spedizione.dest_ragione_sociale || ''}</span></td>
+            <td><span class='txt-dark weight-500'>${spedizione.mittente?.ragione_sociale || spedizione.mitt_ragione_sociale || ''}</span></td>
+            <td><span class='txt-dark weight-500'>${spedizione.mittente?.citta || spedizione.mitt_citta || ''}</span></td>
+            <td><span class='txt-dark weight-500'>${spedizione.mittente?.codice_nazione || spedizione.mitt_codice_nazione || ''}</span></td>
+            <td><span class='txt-dark weight-500'>${spedizione.destinatario?.ragione_sociale || spedizione.dest_ragione_sociale || ''}</span></td>
+            <td><span class='txt-dark weight-500'>${spedizione.destinatario?.citta || spedizione.dest_citta || ''}</span></td>
+            <td><span class='txt-dark weight-500'>${spedizione.destinatario?.codice_nazione || spedizione.dest_codice_nazione || ''}</span></td>
             <td><span class='txt-dark weight-500'>${spedizione.vettore || ''}</span></td>
+			<td><span class='txt-dark weight-500'>${spedizione.awb || ''}</span></td>
             <td><span class='txt-dark weight-500'>${spedizione.last_position || ''}</span></td>
         </tr>`;
     });
@@ -1401,7 +1410,7 @@ function loadPage(page, sort_by, sort_dir, page_size) {
 			console.log('DEBUG:', {page, total_pages, total_items, sort_by, sort_dir, page_size});
 
 			renderPagination(page, total_pages, sort_by, sort_dir, page_size);
-			updateRecordInfo({{ spedizioni|length if spedizioni is defined else 0 }}, total_items, page, total_pages);
+			updateRecordInfo({{ spedizioni_count }}, total_items, page, total_pages);
 });
 </script>
 										</div>

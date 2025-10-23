@@ -181,7 +181,7 @@ def serve_home():
     offset = (page - 1) * page_size
     # Query ordinata e paginata con filtro
     query = f"""
-        SELECT id, data_spedizione, mitt_ragione_sociale, mitt_citta, mitt_codice_nazione, dest_ragione_sociale, dest_citta, dest_codice_nazione, vettore, last_position
+        SELECT id, data_spedizione, mitt_ragione_sociale, mitt_citta, mitt_codice_nazione, dest_ragione_sociale, dest_citta, dest_codice_nazione, vettore, awb, last_position
         FROM spedizioni
         {where_sql}
         ORDER BY {sort_by} {sort_dir}
@@ -199,7 +199,8 @@ def serve_home():
             "dest_citta": row[6],
             "dest_codice_nazione": row[7],
             "vettore": row[8],
-            "last_position": row[9],
+            "awb": row[9],
+            "last_position": row[10],
         }
         for row in cur.fetchall() if row[2] is not None
     ]
@@ -803,8 +804,9 @@ def update_spedizione(item_id: int):
         LOG.exception("Unexpected error during update /api/spedizioni/%s", item_id)
         return jsonify({"detail": "Internal server error"}), 500
 
-@app.route('/')
-# ...existing code...
+'''@app.route('/')
+# ...existing code... '''
+
 
 @app.route('/spedizioni.html')
 def serve_spedizioni():
@@ -1606,18 +1608,7 @@ if __name__ == "__main__":
     LOG.info("📄 File statici serviti da: http://0.0.0.0:5003/spedizioni.html")
     LOG.info("📝 Modulo spedizioni: http://0.0.0.0:5003/modulo")
     app.run(host="0.0.0.0", port=5003, debug=False)    
-    # Avvia il servizio di tracking automatico in background ogni 30 minuti
-    try:
-        from background_tracking import BackgroundTrackingService
-        bg_service = BackgroundTrackingService(interval_minutes=30)
-        bg_service.start()
-        import atexit
-        def cleanup():
-            bg_service.stop()
-        atexit.register(cleanup)
-        LOG.info("🔄 Servizio tracking automatico avviato (ogni 30 minuti)")
-    except Exception as e:
-        LOG.warning("⚠️ Impossibile avviare servizio tracking automatico: %s", e)
+    
 
 
 @app.route('/<path:filename>')
