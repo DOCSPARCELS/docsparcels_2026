@@ -563,6 +563,10 @@ def _row_to_item(row, idx: Dict[str, int]) -> Dict[str, Any]:
         },
     }
 
+@app.route('/form-spedizione')
+def serve_form_spedizione():
+    return render_template('form-spedizione.html')
+
 @app.get("/api/spedizioni")
 def spedizioni():
     try:
@@ -801,9 +805,6 @@ def update_spedizione(item_id: int):
         LOG.exception("Unexpected error during update /api/spedizioni/%s", item_id)
         return jsonify({"detail": "Internal server error"}), 500
 
-'''@app.route('/')
-# ...existing code... '''
-
 
 @app.route('/spedizioni.html')
 def serve_spedizioni():
@@ -818,8 +819,7 @@ def serve_spedizioni():
         return "Not found", 404
 
 
-@app.route('/spedizione_modulo.html')
-def serve_spedizione_modulo():
+
     try:
         base = os.path.dirname(__file__)
         path = os.path.join(base, 'spedizione_modulo.html')
@@ -829,6 +829,7 @@ def serve_spedizione_modulo():
             return "Not found", 404
     except Exception:
         return "Not found", 404
+
 
 @app.route('/debug.html')
 def serve_debug():
@@ -842,6 +843,7 @@ def serve_debug():
     except Exception as e:
         LOG.error(f"Errore serving debug.html: {e}")
         return f"Debug error: {str(e)}", 404
+
 
 @app.route('/debug')
 def serve_debug_simple():
@@ -909,6 +911,7 @@ def serve_debug_simple():
         return debug_html
     except Exception as e:
         return f"Debug error: {str(e)}", 500
+
 
 @app.route('/api/spedizioni/<int:spedizione_id>/tracking', methods=['POST'])
 def update_tracking(spedizione_id):
@@ -1583,29 +1586,6 @@ def get_last_record():
         return jsonify({'error': str(e)}), 500
 
 
-if __name__ == "__main__":
-    # Carica le mappature dei codici eventi
-    
-    
-    # Avvia il servizio di tracking automatico in background ogni 30 minuti
-    try:
-        from background_tracking import BackgroundTrackingService
-        bg_service = BackgroundTrackingService(interval_minutes=30)
-        bg_service.start()
-        import atexit
-        def cleanup():
-            bg_service.stop()
-        atexit.register(cleanup)
-        LOG.info("🔄 Servizio tracking automatico avviato (ogni 30 minuti)")
-    except Exception as e:
-        LOG.warning("⚠️ Impossibile avviare servizio tracking automatico: %s", e)
-    
-       
-    
-    app.run(host="0.0.0.0", port=5003, debug=False)    
-    
-
-
 @app.route('/<path:filename>')
 def catch_all_static(filename):
     """Catch-all per servire file statici generici"""
@@ -1651,6 +1631,30 @@ def index():
 def modulo():
     """Serve il modulo spedizione"""
     return send_file('spedzione_modulo.html')
+
+
+if __name__ == "__main__":
+    # Carica le mappature dei codici eventi
+    
+    
+    # Avvia il servizio di tracking automatico in background ogni 30 minuti
+    try:
+        from background_tracking import BackgroundTrackingService
+        bg_service = BackgroundTrackingService(interval_minutes=30)
+        bg_service.start()
+        import atexit
+        def cleanup():
+            bg_service.stop()
+        atexit.register(cleanup)
+        LOG.info("🔄 Servizio tracking automatico avviato (ogni 30 minuti)")
+    except Exception as e:
+        LOG.warning("⚠️ Impossibile avviare servizio tracking automatico: %s", e)
+    
+       
+    
+    app.run(host="0.0.0.0", port=5003, debug=True)    
+    
+
 
 
 

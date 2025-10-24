@@ -12,4 +12,5 @@ function loadComponent(elementId, filePath) {
 document.addEventListener('DOMContentLoaded', function() {
     loadComponent('navbar-container', '/static/components/navbar.html');
     loadComponent('sidebar-container', '/static/components/sidebar.html');
+    loadComponent('right-sidebar-container', '/static/components/right-sidebar.html');
 });
