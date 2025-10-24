@@ -204,7 +204,7 @@ def serve_home():
     cur.close()
     conn.close()
     return render_template(
-        'full-width-dark/home.html',
+        'home.html',
         spedizioni=spedizioni,
         page=page,
         total_pages=total_pages,
