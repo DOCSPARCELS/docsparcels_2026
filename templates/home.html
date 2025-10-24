@@ -187,7 +187,11 @@
         <tbody id="spedizioni-tbody">
             {% for spedizione in spedizioni %}
             <tr>
-				<td><a href="/spedizione/{{ spedizione.id }}" class="btn btn-primary btn-icon-only btn-xs" title="Visualizza dettagli"><i class="zmdi zmdi-eye"></i></a></td>
+				<td>
+  <a href="/form-spedizione/{{ spedizione.id }}" class="btn btn-primary btn-icon-only btn-xs" title="Visualizza dettagli">
+    <i class="zmdi zmdi-eye"></i>
+  </a>
+</td>
 				<td><span class="txt-dark weight-500">{{ spedizione.id | default('') }}</span></td>
                 <td><span class="txt-dark weight-500">{{ spedizione.data_spedizione.strftime('%d.%m.%y') if spedizione.data_spedizione is defined and spedizione.data_spedizione }}</span></td>
 				<td><span class="txt-dark weight-500">{{ spedizione.mitt_ragione_sociale | default('') }}</span></td>

@@ -67,7 +67,7 @@ def serve_index():
     if os.path.exists(path):
         return send_file(path)
     return "index.html non trovato", 404
-"""
+
 def load_tracking_codes():
     # Carica le mappature dei codici eventi dal database con nome e colore.
     # This is lazy: call it explicitly when DB utilities (db_cursor) are available.
@@ -103,7 +103,7 @@ def load_tracking_codes():
 
         LOG.info(f"🎯 Caricate {len(results)} mappature eventi con colori")
         LOG.info(f"🔍 Debug mappature DHL: {event_mappings.get('DHL', {})}")
-"""
+
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -565,7 +565,21 @@ def _row_to_item(row, idx: Dict[str, int]) -> Dict[str, Any]:
 
 @app.route('/form-spedizione')
 def serve_form_spedizione():
-    return render_template('form-spedizione.html')
+    with db_cursor() as (conn, cur):
+        cur.execute("SELECT * FROM spedizioni ORDER BY id DESC LIMIT 1")
+        row = cur.fetchone()
+        desc = [d[0] for d in cur.description]
+        record = dict(zip(desc, row)) if row else {}
+    return render_template('form-spedizione.html', record=record)
+
+@app.route('/form-spedizione/<int:spedizione_id>')
+def serve_form_spedizione_id(spedizione_id):
+    with db_cursor() as (conn, cur):
+        cur.execute("SELECT * FROM spedizioni WHERE id = %s", (spedizione_id,))
+        row = cur.fetchone()
+        desc = [d[0] for d in cur.description]
+        record = dict(zip(desc, row)) if row else {}
+    return render_template('form-spedizione.html', record=record)
 
 @app.get("/api/spedizioni")
 def spedizioni():
@@ -818,7 +832,8 @@ def serve_spedizioni():
     except Exception:
         return "Not found", 404
 
-
+@app.route('/spedizione_modulo.html')
+def serve_spedizione_modulo():
 
     try:
         base = os.path.dirname(__file__)

@@ -81,9 +81,9 @@
 						<!-- Breadcrumb -->
 						<div class="col-lg-9 col-sm-8 col-md-8 col-xs-12">
 							<ol class="breadcrumb">
-								<li><a href="index.html">Dashboard</a></li>
-								<li><a href="#"><span>form</span></a></li>
-								<li class="active"><span>Spedizione</span></li>
+								<li><a href="http://localhost:5003/home">Dashboard</a></li>
+								<li><a href="#"><span>Lsta</span></a></li>
+								<li class="active"><span>Scheda</span></li>
 							</ol>
 						</div>
 						<!-- /Breadcrumb -->
@@ -115,58 +115,58 @@
 												<!-- Riga 1 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Società:</label><div><p>Doc's & Parcels</p></div>
+														<label>Società:</label><div><p>{{ record.mitt_ragione_sociale or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Nome:</label><div><p>Luca Aveani</p></div>
+														<label>Nome:</label><div><p>{{ record.mitt_contatto or '' }}</p></div>
 													</div>
 												</div> 
 																													
 												<!-- Riga 2 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Località:</label><div><p>00185, Roma, Italia</p></div>
+														<label>Indirizzo:</label><div><p>{{ record.mitt_indirizzo or '' }}, {{ record.mitt_civico or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Indirizzo:</label><div><p>Via Cairoli, 90</p></div>
+														<label></label><div><p>{{ record.mitt_cap or '' }}, {{ record.mitt_citta or '' }}, {{ record.mitt_provincia or ''}}, {{ record.mitt_nazione or '' }}, {{ record.mitt_codice_nazione or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Altro:</label><div><p>3 piano Scala C</p></div>
+														<label>Altro:</label><div><p>{{ record.mitt_riferimento or '' }}</p></div>
 													</div>
 												</div>
 												
 												<!-- Riga 3 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Telefono:</label><div><p>+390677203074</p></div>
+														<label>Telefono:</label><div><p>{{ record.mitt_telefono or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>e-mail:</label><div><p>info@docsparcels.com</p></div>
+														<label>e-mail:</label><div><p>{{ record.mitt_email or '' }}</p></div>
 													</div>
 												</div>
 												
 												<!-- Riga 4 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Partita IVA:</label><div><p>IT13182921000</p></div>
+														<label>Partita IVA:</label><div><p>{{ record.mitt_partitva_iva or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Codice Fiscale:</label><div><p>VNA LCU 72D 03H 501J</p></div>
+														<label>Codice Fiscale:</label><div><p>{{ record.mitt_codice_fiscale or '' }}</p></div>
 													</div>
 												</div>
 
 												<!-- Riga 5 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Codice EORI:</label><div><p>attivo</p></div>
+														<label>EORI:</label><div><p>{{ record.mitt_eori or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Info Note:</label><div><p>------</p></div>
+														<label>Info Note:</label><div><p>{{ record.mitt_info or '' }}</p></div>
 													</div>
 												</div>
 												
 												<!-- Riga 6 -->
-												<div class="form-group"><label>Altro:</label><div><p>------</p></div></div>
+												<div class="form-group"><label>Codice Cliente:</label><div><p>{{ record.mitt_cliente or '' }}</p></div></div>
 											</div>
 																						
 											<!-- SEZIONE SINISTRA - DESTINATARIO -->
@@ -178,58 +178,58 @@
 												<!-- Riga 1 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Società:</label><div><p>Doc's & Parcels</p></div>
+														<label>Società:</label><div><p>{{ record.dest_ragione_sociale or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Nome:</label><div><p>Luca Aveani</p></div>
+														<label>Nome:</label><div><p>{{ record.dest_contatto or '' }}</p></div>
 													</div>
 												</div> 
 																													
 												<!-- Riga 2 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Località:</label><div><p>00185, Roma, Italia</p></div>
+														<label>Indirizzo:</label><div><p>{{ record.dest_indirizzo or '' }}, {{ record.dest_civico or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Indirizzo:</label><div><p>Via Cairoli, 90</p></div>
+														<label></label><div><p>{{ record.dest_cap or '' }}, {{ record.dest_citta or '' }}, {{ record.dest_provincia or ''}}, {{ record.dest_nazione or '' }}, {{ record.dest_codice_nazione or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Altro:</label><div><p>3 piano Scala C</p></div>
+														<label>Altro:</label><div><p>{{ record.dest_riferimento or '' }}</p></div>
 													</div>
 												</div>
 												
 												<!-- Riga 3 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Telefono:</label><div><p>+390677203074</p></div>
+														<label>Telefono:</label><div><p>{{ record.dest_telefono or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>e-mail:</label><div><p>info@docsparcels.com</p></div>
+														<label>e-mail:</label><div><p>{{ record.dest_email or '' }}</p></div>
 													</div>
 												</div>
 												
 												<!-- Riga 4 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Partita IVA:</label><div><p>IT13182921000</p></div>
+														<label>Partita IVA:</label><div><p>{{ record.dest_partitva_iva or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Codice Fiscale:</label><div><p>VNA LCU 72D 03H 501J</p></div>
+														<label>Codice Fiscale:</label><div><p>{{ record.dest_codice_fiscale or '' }}</p></div>
 													</div>
 												</div>
 
 												<!-- Riga 5 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Codice EORI:</label><div><p>attivo</p></div>
+														<label>EORI:</label><div><p>{{ record.dest_eori or '' }}</p></div>
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Info Note:</label><div><p>------</p></div>
+														<label>Info Note:</label><div><p>{{ record.dest_info or '' }}</p></div>
 													</div>
 												</div>
 												
 												<!-- Riga 6 -->
-												<div class="form-group"><label>Altro:</label><div><p>------</p></div></div>
+												<div class="form-group"><label>Codice Cliente:</label><div><p>{{ record.dest_cliente or '' }}</p></div></div>
 											</div>
 											
 											<!-- SEZIONE DESTRA RIEPILOGO -->
@@ -239,19 +239,42 @@
 												<hr class="light-grey-hr"/>
 												
 												<!-- Riga 1 -->
-												<div class="form-group"><label>Vettore:</label><div><p>DHL</p></div></div>
-												
-												<!-- Riga 2 -->
-												<div class="form-group"><label>AWB:</label><div><p>123456789</p></div></div>
-												
-												<!-- Riga 3 -->
-												<div class="form-group"><label>Servizio:</label><div><p>Standard</p></div></div>		
+												<div class="form-group"><label>Data:</label><div><p>{{ record.data_spedizione.strftime('%d.%m.%y') if record.data_spedizione else '' }}</p></div></div>		
 
+												<!-- Riga 2 -->
+												<div class="form-group"><label>MOS:</label><div><p>{{ record.id or '' }}</p></div></div>	
+
+												<!-- Riga 3 -->
+												<div class="form-group"><label>Vettore:</label><div><p>{{ record.vettore or '' }}</p></div></div>
+												
 												<!-- Riga 4 -->
-												<div class="form-group"><label>Peso kg:</label><div><p>2.5</p></div></div>
+												<div class="form-group"><label>Servizio:</label><div><p>{{ record.servizio or '' }}</p></div></div>
 
 												<!-- Riga 5 -->
-												<div class="form-group"><label>Dim cm</label>:</label><div><p>60 x 40 x 40</p></div></div>
+												<div class="form-group"><label>AWB:</label><div><p>{{ record.awb or '' }}</p></div></div>
+												
+												<!-- Riga 6 -->
+												<div class="form-group"><label>Status:</label><div><p>{{ record.last_position or '' }}</p></div></div>		
+
+												<!-- Riga 7 -->
+												<div class="form-group">
+													<label></label>
+													<div>
+														<p>{{ record.last_position_update.strftime('%d.%m.%y : %H.%M') if record.last_position_update else '' }}</p>
+													</div>
+												</div>
+
+												<!-- Riga 8 -->
+												<div class="form-group"><label>Colli:</label><div><p>1</p></div></div>
+
+												<!-- Riga 9 -->
+												<div class="form-group"><label>Peso kg:</label><div><p>2.5</p></div></div>
+
+												<!-- Riga 10 -->
+												<div class="form-group"><label>Dim cm:</label><div><p>60 x 40 x 40</p></div></div>
+											
+												<!-- Riga 10 -->
+												<div class="form-group"><label>Tariffa</label><div><p>{{ '€ {:.2f}'.format(record.totale) if record.totale is not none else '' }}</p></div></div>	
 											</div>
 
 											</div>
