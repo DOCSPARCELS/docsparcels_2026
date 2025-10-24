@@ -7,7 +7,7 @@ password: qrUTxMkM7Dke
 Windows
 1 bis
 Avvio SSH - da terminale esterno con comandi:
-PS C:\Users\Luca 1> luca@91.134.91.229
+PS C:\Users\Luca 1> ssh -L 3307:127.0.0.1:3306 luca@91.134.91.229
 password: qrUTxMkM7Dke
 
 

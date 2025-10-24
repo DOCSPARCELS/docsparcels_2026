@@ -50,10 +50,10 @@ class TNTTrackingClient:
             'SOAPAction': ''
         }
         
-        logger.info(f"🚚 TNT Tracking Client inizializzato")
-        logger.info(f"📡 Endpoint: {self.endpoint}")
-        logger.info(f"👤 Customer: {self.customer}")
-        logger.info(f"🏢 Account: {self.account_no}")
+        #logger.info(f"🚚 TNT Tracking Client inizializzato")
+        #logger.info(f"📡 Endpoint: {self.endpoint}")
+        #logger.info(f"👤 Customer: {self.customer}")
+        #logger.info(f"🏢 Account: {self.account_no}")
     
     def track_shipment(self, awb_number: str) -> Dict[str, Any]:
         """

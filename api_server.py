@@ -67,11 +67,10 @@ def serve_index():
     if os.path.exists(path):
         return send_file(path)
     return "index.html non trovato", 404
-
+"""
 def load_tracking_codes():
-    """Carica le mappature dei codici eventi dal database con nome e colore.
-    This is lazy: call it explicitly when DB utilities (db_cursor) are available.
-    """
+    # Carica le mappature dei codici eventi dal database con nome e colore.
+    # This is lazy: call it explicitly when DB utilities (db_cursor) are available.
     global event_mappings
 
     with db_cursor() as (conn, cur):
@@ -104,9 +103,7 @@ def load_tracking_codes():
 
         LOG.info(f"🎯 Caricate {len(results)} mappature eventi con colori")
         LOG.info(f"🔍 Debug mappature DHL: {event_mappings.get('DHL', {})}")
-
-
-
+"""
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -1588,7 +1585,7 @@ def get_last_record():
 
 if __name__ == "__main__":
     # Carica le mappature dei codici eventi
-    load_tracking_codes()
+    
     
     # Avvia il servizio di tracking automatico in background ogni 30 minuti
     try:
@@ -1603,10 +1600,8 @@ if __name__ == "__main__":
     except Exception as e:
         LOG.warning("⚠️ Impossibile avviare servizio tracking automatico: %s", e)
     
-    # Avvio il server API
-    LOG.info("🚀 Avvio server API su http://0.0.0.0:5003")
-    LOG.info("📄 File statici serviti da: http://0.0.0.0:5003/spedizioni.html")
-    LOG.info("📝 Modulo spedizioni: http://0.0.0.0:5003/modulo")
+       
+    
     app.run(host="0.0.0.0", port=5003, debug=False)    
     
 
