@@ -9,8 +9,8 @@
 		<meta name="author" content="hencework"/>
 		
 		<!-- Favicon -->
-		<link rel="shortcut icon" href="favicon.ico">
-		<link rel="icon" href="favicon.ico" type="image/x-icon">
+		<link rel="shortcut icon" href="/static/favicon.ico">
+		<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 		
 		<!-- Fancy-Buttons CSS -->
 		<link href="/static/dist/css/fancy-buttons.css" rel="stylesheet" type="text/css">
@@ -19,47 +19,102 @@
 		<link href="/static/vendors/bower_components/jasny-bootstrap/dist/css/jasny-bootstrap.min.css" rel="stylesheet" type="text/css"/>
 		
 		<!-- Custom CSS -->
-		<link href="/static/dist/css/style.css" rel="stylesheet" type="text/css">
-		<style>
-		/* Form group con flexbox */
-		.form-spedizione .form-group {
-			display: flex;
-			align-items: center;
-			margin-bottom: 8px;
-		}
+		   <link href="/static/dist/css/style.css" rel="stylesheet" type="text/css">
+		   <style>
+		   .heading-bg {
+				height: 30px;
+				margin: 0 -5px 15px;
+				padding: 5px 0;
+}	
+		   .form-spedizione h6 {
+			   margin-bottom: 2px;
+		   }
+		   .form-spedizione hr.light-grey-hr {
+			   margin-top: 2px;
+			   margin-bottom: 8px;
+		   }
+		   /* --- Stili personalizzati per la form spedizione --- */
+		   .form-spedizione .form-group {
+			   display: flex;
+			   flex-direction: column;
+			   align-items: flex-start;
+			   margin-bottom: 8px;
+		   }
+		   .form-spedizione .form-group label {
+			   font-size: 15px;
+			   font-weight: 500;
+			   color: #fff;
+			   margin-bottom: 2px;
+			   padding-left: 0;
+			   text-align: left;
+			   white-space: nowrap;
+		   }
+		   .form-spedizione .form-group > div {
+			   font-size: 15px;
+			   color: #ccc;
+			   margin-left: 0;
+			   padding-left: 0;
+			   text-align: left;
+		   }
+		   .form-spedizione .form-group p {
+			   margin: 0;
+			   padding: 0;
+		   }
+		   /* Rimuovi i riquadri e le linee dalle select e dagli input */
+		   .form-spedizione select.form-control,
+		   .form-spedizione input[type="text"],
+		   .form-spedizione input[type="email"],
+		   .form-spedizione input[type="password"],
+		   .form-spedizione input[type="number"] {
+			   background: #222;
+			   color: #fff;
+			   border: none;
+			   border-radius: 0;
+			   box-shadow: none;
+			   outline: none;
+		   }
+		   .form-spedizione select.form-control:focus,
+		   .form-spedizione input[type="text"]:focus,
+		   .form-spedizione input[type="email"]:focus,
+		   .form-spedizione input[type="password"]:focus,
+		   .form-spedizione input[type="number"]:focus {
+			   background: #222;
+			   color: #fff;
+			   border: none;
+			   box-shadow: none;
+			   outline: none;
+		   }
+		   /* Rimuovi bordo anche dai textarea se presenti */
+		   .form-spedizione textarea.form-control {
+			   background: #222;
+			   color: #fff;
+			   border: none;
+			   border-radius: 0;
+			   box-shadow: none;
+			   outline: none;
+		   }
+		   .form-spedizione textarea.form-control:focus {
+			   background: #222;
+			   color: #fff;
+			   border: none;
+			   box-shadow: none;
+			   outline: none;
+		   }
+		   .form-spedizione .panel-body {
+			   padding-left: 24px;
+		   }  
+		   .form-spedizione .form-body {
+			   padding-left: 24px;
+		   }
+		   /* Spazio tra la barra grigia e la sezione nera sopra la data */
+		   /* Spazio sotto la barra grigia (heading-bg) */
+		   .heading-bg {
+			   margin-bottom: 15px; /* Regola qui lo spazio tra la riga grigia e la parte nera */
+		   }
+		   /* --- Fine stili personalizzati --- */
+		   </style>
 
-		/* Label bianche allineate a sinistra */
-		.form-spedizione .form-group label {
-			min-width: 100px;  /* <-- CAMBIATO da width a min-width */
-			text-align: left;
-			padding-left: 10px;
-			margin: 0;
-			color: #fff;
-			font-weight: 500;
-			white-space: nowrap;  /* <-- AGGIUNTO: evita che le label vadano a capo */
-		}
-
-		.form-spedizione .form-group > div {
-			flex: 1;
-			text-align: left;
-			padding-left: 5px;
-		}
-
-		.form-spedizione .form-group p {
-			margin: 0;
-			padding: 0;
-		}
-		</style>
-	</head>
-	
-	<body>
-		<!--Preloader-->
-		<div class="preloader-it">
-			<div class="la-anim-1"></div>
-		</div>
-		<!--/Preloader-->
-		
-		<div class="wrapper  theme-6-active pimary-color-pink">
+		   <div class="wrapper  theme-6-active pimary-color-pink">
 		
 			<div id="navbar-container"></div>
 				
@@ -103,48 +158,54 @@
 								<form class="form-horizontal form-spedizione" role="form">
 									<div class="form-body">
 										
-										<!-- Row con 1 sezione -->
-										<div class="row">
 											
-											<!-- SEZIONE PRINCIPALE -->
-											<!-- Riga 1 -->
-											
-											<div class="col-md-12">
-												<div style="display: flex; gap: 30px; margin-bottom: 10px;">
-													
-													<div class="form-group"><label>Data</label><div><p>{{ record.data_spedizione.strftime('%d.%m.%y') if record.data_spedizione else '' }}</p></div></div>		
-													<div class="form-group"><label>MOS</label><div><p>{{ record.id or '' }}</p></div></div>		
-													<div class="form-group"><label>Vettore</label><div><p>{{ record.vettore or '' }}</p></div></div>
-													<div class="form-group"><label>Servizio</label><div><p>{{ record.servizio or '' }}</p></div></div>
-													<div class="form-group"><label>AWB</label><div><p>{{ record.awb or '' }}</p></div></div>
-													<div class="form-group"><label>Status</label><div><p>{{ record.last_position or '' }}</p></div></div>
-													<!-- Riga 7 -->
-												<div class="form-group">
-													<label></label>
-													<div>
-														<p>{{ record.last_position_update.strftime('%d.%m.%y : %H.%M') if record.last_position_update else '' }}</p>
+											<!-- Row con 1 sezione -->
+											<div class="row">
+												<!-- SEZIONE PRINCIPALE -->
+												<div class="col-md-12">
+													<div style="display: flex; gap: 30px; margin-bottom: 10px; align-items: baseline;">
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">Data:</label>
+															<div><p style="color: #41a962; font-weight: 500;">{{ record.data_spedizione.strftime('%d.%m.%y') if record.data_spedizione else '' }}</p></div>
+														</div>
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">MOS:</label>
+															<div><p style="color: #41a962; font-weight: 500;">{{ record.id or '' }}</p></div>
+														</div>
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">Vettore:</label>
+															<div><p>{{ record.vettore or '' }}</p></div>
+														</div>
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">Servizio:</label>
+															<div><p>{{ record.servizio or '' }}</p></div>
+														</div>
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">AWB:</label>
+															<div><p style="color: #41a962; font-weight: 500;">{{ record.awb or '' }}</p></div>
+														</div>
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">Status:</label>
+															<div><p>{{ record.last_position or '' }}</p></div>
+														</div>
+														<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0; margin-right: 24px;">
+															<label style="margin-bottom: 0; margin-right: 6px;">Aggiornamento: </label>
+															<div><p>{{ record.last_position_update.strftime('%d.%m.%y : %H.%M') if record.last_position_update else '' }}</p></div>
+														</div>
 													</div>
-												</div>	
-												</div> 
-												
-												
-												
-												<!-- Riga 1 -->
-												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														
-													</div>
-												</div> 																				
-											</div>								
-										</div>
-										<!-- /Row con 1 sezione -->
+												</div>
+											</div>
+											<!-- /Row con 1 sezione -->
 
-										<!-- Row con 3 sezioni affiancate -->
-										<div class="row">
+											<!-- Row con 3 sezioni affiancate -->
+											<div class="row">
 											
 											<!-- SEZIONE SINISTRA - MITTENTE -->
 											<div class="col-md-5">
-												<h6 class="txt-dark capitalize-font">Mittente</h6>
+												<h6 class="txt-dark capitalize-font" style="display: flex; align-items: center; gap: 6px;">
+													<i class="zmdi zmdi-account-box" title="Scheda contatto" style="font-size: 18px; color: #41a962; cursor: pointer;"></i>
+													Mittente
+												</h6>
 												
 												<hr class="light-grey-hr"/>
 												
@@ -155,6 +216,9 @@
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
 														<label>Nome</label><div><p>{{ record.mitt_contatto or '' }}</p></div>
+													</div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0;">
+														<label>Codice Cliente</label><div><p>{{ record.mitt_cliente or '' }}</p></div>
 													</div>
 												</div> 
 																													
@@ -192,32 +256,30 @@
 												
 												<!-- Riga 5 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Partita IVA</label><div><p>{{ record.mitt_partita_iva or '' }}</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Partita IVA</label>
+														<div><p style="margin-bottom: 0;">{{ record.mitt_partita_iva or '' }}</p></div>
 													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Codice Fiscale</label><div><p>{{ record.mitt_codice_fiscale or '' }}</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Codice Fiscale</label>
+														<div><p style="margin-bottom: 0;">{{ record.mitt_codice_fiscale or '' }}</p></div>
 													</div>
-												</div>
-
-												<!-- Riga 6 -->
-												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>EORI</label><div><p>{{ record.mitt_eori or '' }}</p></div>
-													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Info Note</label><div><p>{{ record.mitt_info or '' }}</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline;">
+														<label style="margin-bottom: 0; margin-right: 6px;">EORI</label>
+														<div><p style="margin-bottom: 0;">{{ record.mitt_eori or '' }}</p></div>
 													</div>
 												</div>
-												
-												<!-- Riga 7 -->
-												<div class="form-group"><label>Codice Cliente</label><div><p>{{ record.mitt_cliente or '' }}</p></div></div>
+							
+																						
 											</div>
 												
 										
 											<!-- SEZIONE DESTINATARIO -->
 											<div class="col-md-5">
-												<h6 class="txt-dark capitalize-font">Destinatario</h6>
+												<h6 class="txt-dark capitalize-font" style="display: flex; align-items: center; gap: 6px;">
+													<i class="zmdi zmdi-account-box" title="Scheda contatto" style="font-size: 18px; color: #41a962; cursor: pointer;"></i>
+													Destinatario
+												</h6>
 												
 												<hr class="light-grey-hr"/>
 												
@@ -228,6 +290,9 @@
 													</div>
 													<div class="form-group" style="flex: 1; margin-bottom: 0;">
 														<label>Nome</label><div><p>{{ record.dest_contatto or '' }}</p></div>
+													</div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0;">
+														<label>Codice Cliente</label><div><p>{{ record.dest_cliente or '' }}</p></div>
 													</div>
 												</div> 
 																													
@@ -265,75 +330,221 @@
 												
 												<!-- Riga 5 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Partita IVA</label><div><p>{{ record.dest_partitva_iva or '' }}</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Partita IVA</label>
+														<div><p style="margin-bottom: 0;">{{ record.dest_partitva_iva or '' }}</p></div>
 													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Codice Fiscale</label><div><p>{{ record.dest_codice_fiscale or '' }}</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Codice Fiscale</label>
+														<div><p style="margin-bottom: 0;">{{ record.dest_codice_fiscale or '' }}</p></div>
+													</div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline;">
+														<label style="margin-bottom: 0; margin-right: 6px;">EORI</label>
+														<div><p style="margin-bottom: 0;">{{ record.dest_eori or '' }}</p></div>
 													</div>
 												</div>
+											</div>											
 
-												<!-- Riga 6 -->
-												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>EORI</label><div><p>{{ record.dest_eori or '' }}</p></div>
-													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Info Note</label><div><p>{{ record.dest_info or '' }}</p></div>
-													</div>
-												</div>
-												
-												<!-- Riga 7 -->
-												<div class="form-group"><label>Codice Cliente</label><div><p>{{ record.dest_cliente or '' }}</p></div></div>
-											</div>
-											
 											<!-- SEZIONE RIEPILOGO -->
 											<div class="col-md-2">
-												<h6 class="txt-dark capitalize-font">Riepilogo</h6>
-																													
-												<hr class="light-grey-hr"/>
-																						
-												<!-- Riga 1 -->
-												<div class="form-group"><label>Tariffa</label><div><p>{{ '€ {:.2f}'.format(record.totale) if record.totale is not none else '' }}</p></div></div>	
-											</div>
-
-												<!-- Riga 2 -->
-												<div class="form-group"><label>IVA 22%</label><div><p>{{ '€ {:.2f}'.format(record.totale) if record.totale is not none else '' }}</p></div></div>	
-											</div>
-
-													
-											</div>
+											   <h6 class="txt-dark capitalize-font">Riepilogo</h6>
+											   <hr class="light-grey-hr"/>
+											   <div style="display: flex; flex-direction: column; gap: 10px;">
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Tariffa</label>
+													   <div><p style="color: #41a962; font-weight: 500;">{{ '€ {:.2f}'.format(record.tariffa_base) if record.tariffa_base is not none else '' }}</p></div>
+												   </div>
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Assicurazione</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.costo_assicurazione) if record.costo_assicurazione is not none else '' }}</p></div>
+												   </div>
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Contrassegno</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.costo_contrassegno) if record.costo_contrassegno is not none else '' }}</p></div>
+												   </div>
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Fuel</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.costo_assicurazione) if record.costo_assicurazione is not none else '' }}</p></div>
+												   </div>	
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Residenziale</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.costo_assicurazione) if record.costo_assicurazione is not none else '' }}</p></div>
+												   </div>
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Sub Totale</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.importo_iva) if record.importo_iva is not none else '' }}</p></div>
+												   </div>
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">IVA 22%</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.importo_iva) if record.importo_iva is not none else '' }}</p></div>
+												   </div>
+												   <div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													   <label style="margin-bottom: 0; margin-right: 6px;">Sconto/Extra</label>
+													   <div><p>{{ '€ {:.2f}'.format(record.importo_iva) if record.importo_iva is not none else '' }}</p></div>
+												   </div>
+												<div class="form-group" style="flex-direction: row; align-items: baseline; margin-bottom: 0;">
+													<label style="margin-bottom: 0; margin-right: 6px;">Totale</label>
+													<div><p style="color: #41a962; font-weight: 500;">{{ '€ {:.2f}'.format(record.importo_iva) if record.importo_iva is not none else '' }}</p></div>
+												</div>
+												   		
+											   </div>
+										   </div>
+										</div>   			
+																					
 										<!-- /Row con 3 sezioni -->
-
+										<!-- SEZIONE DETTAGLIO SPEDIZIONE 1 -->
+											<div class="row">
+												<div class="col-md-12" style="padding-left: 24px;">
+													<div style="height: 8px;"></div>
+													<hr class="light-grey-hr"/>
+													<div style="display: flex; gap: 32px; margin-bottom: 10px; align-items: flex-start; justify-content: stretch; width: 100%; box-sizing: border-box;">
+														<!-- 4 campi: etichetta sopra, valore sotto -->
+														<div class="form-group" style="flex: 1 1 0; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; min-width: 100px;">
+															<label style="margin-bottom: 2px;">Note - Istruzioni</label>
+															<div>---</div>
+														</div>
+														<div class="form-group" style="flex: 1; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; min-width: 120px;">
+															<label style="margin-bottom: 2px;">Note Amministrative</label>
+															<div>---</div>
+														</div>
+														<div class="form-group" style="flex: 1; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; min-width: 120px;">
+															<label style="margin-bottom: 2px;">Fatturazione</label>
+															<select class="form-control" name="fatturazione" style="width: 70%; min-width: 70px;">
+																<option value="">---</option>
+																<option value="immediata">Immediata</option>
+																<option value="fine_mese">Fine mese</option>
+																<option value="differita">Differita</option>
+															</select>
+														</div>
+														<div class="form-group" style="flex: 1; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; min-width: 120px;">
+															<label style="margin-bottom: 2px;">Termini</label>
+															<select class="form-control" name="termini" style="width: 50%; min-width: 50px;">
+																<option value="">---</option>
+																<option value="contanti">Contanti</option>
+																<option value="bonifico">Bonifico</option>
+																<option value="30gg">30 giorni</option>
+																<option value="60gg">60 giorni</option>
+															</select>
+														</div>
+														<!-- 6 opzioni flag (checkbox) con etichetta sopra, opzioni sotto -->
+														<div class="form-group" style="flex: 3 3 0; margin-bottom: 0; display: flex; flex-direction: row; align-items: flex-start; min-width: 320px; max-width: 420px; gap: 32px; justify-content: stretch; box-sizing: border-box;">
+															<div style="display: flex; flex-direction: column; align-items: center; min-width: 60px; flex: 1 1 0; justify-content: flex-end;">
+																<label style="margin-bottom: 2px; text-align: center;">Sabato</label>
+																<input type="checkbox" id="flag1" style="margin: 0 auto;">
+															</div>
+															<div style="display: flex; flex-direction: column; align-items: center; min-width: 60px; flex: 1 1 0; justify-content: flex-end;">
+																<label style="margin-bottom: 2px; text-align: center;">Bagagli</label>
+																<input type="checkbox" id="flag2" style="margin: 0 auto;">
+															</div>
+															<div style="display: flex; flex-direction: column; align-items: center; min-width: 60px; flex: 1 1 0; justify-content: flex-end;">
+																<label style="margin-bottom: 2px; text-align: center;">UN3373</label>
+																<input type="checkbox" id="flag3" style="margin: 0 auto;">
+															</div>
+															<div style="display: flex; flex-direction: column; align-items: center; min-width: 60px; flex: 1 1 0; justify-content: flex-end;">
+																<label style="margin-bottom: 2px; text-align: center;">Green</label>
+																<input type="checkbox" id="flag5" style="margin: 0 auto;">
+															</div>
+														</div>
+														<!-- 2 radio con etichetta sopra, opzioni sotto -->
+														<div class="form-group" style="flex: 1; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; min-width: 160px;">
+															<label style="margin-bottom: 2px;">Consegna a privato?</label>
+															<div style="display: flex; gap: 8px;">
+																<input type="radio" id="consegna_privato_si" name="consegna_privato"><label for="consegna_privato_si" style="margin-right: 6px; margin-bottom: 0;">Sì</label>
+																<input type="radio" id="consegna_privato_no" name="consegna_privato"><label for="consegna_privato_no" style="margin-bottom: 0;">No</label>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+											<!-- /SEZIONE DETTAGLIO SPEDIZIONE 1 -->
 										<!-- Row con 1 sezione -->
 										<div class="row">
 											
-											<!-- SEZIONE DETTAGLIO SPEDIZIONE -->
-											<div class="col-md-12">
-												<h6 class="txt-dark capitalize-font">Dettaglio Spedizione</h6>
+											<!-- SEZIONE DETTAGLIO SPEDIZIONE 2 -->
+											<div class="col-md-12" style="padding-left: 24px;">
+											   <div style="display: flex; align-items: center; gap: 24px;">
+												   <h6 class="txt-dark capitalize-font" style="margin-bottom: 0;">Dettaglio Spedizione</h6>
+												   {% if colli and colli|length > 0 %}
+													   <span style="font-size: 16px; color: #fff; background: #8882; border-radius: 6px; padding: 2px 12px; font-weight: 500;">Colli: {{ colli|length }}</span>
+													   <span style="font-size: 16px; color: #fff; background: #8882; border-radius: 6px; padding: 2px 12px; font-weight: 500; margin-left: 8px;">Peso Totale: {{ colli | sum(attribute='peso') }} kg</span>
+												   {% endif %}
+											   </div>
+											   <hr class="light-grey-hr"/>
 												
-												<hr class="light-grey-hr"/>
-												
+											   										    
 												<!-- Riga 1 -->
 												<div style="display: flex; gap: 20px; margin-bottom: 10px;">
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Tipologia</label><div>Documenti</div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline; display: flex;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Tipologia</label>
+														<select class="form-control" name="tipologia" style="width: 40%; min-width: 40px;">
+															<option value="">---</option>
+															<option value="documenti">Documenti</option>
+															<option value="pacco">Pacco</option>
+															<option value="pallet">Pallet</option>
+															<option value="altro">Altro</option>
+														</select>
 													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Imballaggio</label><div><p>Imballaggio</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline; display: flex;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Imballaggio</label>
+														<select class="form-control" name="imballaggio" style="width: 40%; min-width: 40px;">
+															<option value="">---</option>
+															<option value="busta">Busta</option>
+															<option value="scatola">Scatola</option>
+															<option value="pallet">Pallet</option>
+															<option value="altro">Altro</option>
+														</select>
 													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Peso</label><div><p>-x-</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline; display: flex;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Peso</label>
+														<div>
+															{% if colli and colli|length > 0 %}
+																<span>{{ colli[0].peso }} kg</span>
+															{% else %}
+																<span>-</span>
+															{% endif %}
+														</div>
 													</div>
-													<div class="form-group" style="flex: 1; margin-bottom: 0;">
-														<label>Dimensioni</label><div><p>Lung x Larg x Alt</p></div>
+													<div class="form-group" style="flex: 1; margin-bottom: 0; flex-direction: row; align-items: baseline; display: flex;">
+														<label style="margin-bottom: 0; margin-right: 6px;">Dimensioni</label>
+														<div>
+															{% if colli and colli|length > 0 %}
+																<span>{{ colli[0].lunghezza }} x {{ colli[0].larghezza }} x {{ colli[0].altezza }} cm</span>
+															{% else %}
+																<span>-</span>
+															{% endif %}
+														</div>
 													</div>
-												</div> 
-																																																																																												
+													{% if colli and colli|length > 1 %}
+													<div style="flex: 1; margin-bottom: 0;">
+														<a href="#" onclick="event.preventDefault(); var d=document.getElementById('dettaglio-colli'); d.style.display = d.style.display==='none' ? 'block' : 'none';" style="font-size: 15px; font-weight: 500; color: #41a962; text-decoration: none;">Visualizza tutti i colli ({{ colli|length }})</a>
+														<div id="dettaglio-colli" style="display: none; margin-top: 10px;">
+															<table style="color: #ccc; font-size: 15px; width: auto;">
+																<thead>
+																	<tr><th></th><th>Peso</th><th style="width: 32px;"></th><th>Dimensioni</th></tr>
+																</thead>
+																<tbody>
+																	{% for collo in colli %}
+																	<tr>
+																		<td style="padding-right: 8px; color: #aaa;">{{ loop.index }}</td>
+																		<td>{{ collo.peso }} kg</td>
+																		<td></td>
+																		<td>{{ collo.lunghezza }} x {{ collo.larghezza }} x {{ collo.altezza }} cm</td>
+																	</tr>
+																	{% endfor %}
+																	</tbody>
+																</table>
+															</div>
+														</div>
+														{% endif %}
+													</div> 
+													
+														
+												</div>
+
 											</div>
 										<!-- /Row con 1 sezione -->
-									</div>
-									
+										 
+
 									<!-- Bottoni azione -->
 									<div class="form-actions mt-10">
 										<div class="row">

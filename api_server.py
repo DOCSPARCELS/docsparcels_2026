@@ -570,16 +570,27 @@ def serve_form_spedizione():
         row = cur.fetchone()
         desc = [d[0] for d in cur.description]
         record = dict(zip(desc, row)) if row else {}
-    return render_template('form-spedizione.html', record=record)
+        # Recupera anche i colli associati all'ultima spedizione (se presente)
+        colli = []
+        if row and 'id' in record:
+            cur.execute("SELECT * FROM spedizioni_colli WHERE spedizione = %s", (record['id'],))
+            colli = [dict(zip([d[0] for d in cur.description], r)) for r in cur.fetchall()]
+    return render_template('form-spedizione.html', record=record, colli=colli)
 
 @app.route('/form-spedizione/<int:spedizione_id>')
 def serve_form_spedizione_id(spedizione_id):
     with db_cursor() as (conn, cur):
+        # Prendi tutti i campi della spedizione
         cur.execute("SELECT * FROM spedizioni WHERE id = %s", (spedizione_id,))
         row = cur.fetchone()
         desc = [d[0] for d in cur.description]
         record = dict(zip(desc, row)) if row else {}
-    return render_template('form-spedizione.html', record=record)
+
+        # Prendi tutti i colli associati a questa spedizione
+        cur.execute("SELECT * FROM spedizioni_colli WHERE spedizione = %s", (spedizione_id,))
+        colli = [dict(zip([d[0] for d in cur.description], r)) for r in cur.fetchall()]
+
+    return render_template('form-spedizione.html', record=record, colli=colli)
 
 @app.get("/api/spedizioni")
 def spedizioni():
